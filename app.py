@@ -142,13 +142,13 @@ def miner(arg):
 @socketio.on('send-credits', namespace='/socket.io/')
 def send_credits(address, amount):
 
-    data = node.send({ 'spend': [amount, address] })
+    data = node.send({ 'command':['spend', amount, address] })
 
 
 @socketio.on('create-jury', namespace='/socket.io/')
 def create_jury(name):
 
-    data = node.send({ 'create_jury': [name] })
+    data = node.send({ 'command':['create_jury', name] })
 
 
 @socketio.on('buy-shares', namespace='/socket.io/')
