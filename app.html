@@ -86,6 +86,7 @@ nav .credits {
 }
 .network .miner-on span {
     color: green;
+    font-weight: bold;
 }
 .network .blocks {
     margin-bottom: 15px;
@@ -136,7 +137,7 @@ nav .credits {
 
         <div class="dash page row">
 
-            <div class="col-sm-4 sidebar">
+            <div class="col-sm-3 sidebar">
                 <div class="panel panel-success account">
                     <div class="panel-heading clearfix">Account</div>
                     <div class="panel-body">
@@ -145,7 +146,7 @@ nav .credits {
                     </div>
                 </div>
 
-                <div class="panel panel-success">
+                <div class="panel panel-info">
                     <div class="panel-heading clearfix"><span class="pull-left">Juries</span><a class="pull-right" href="#create-jury-modal" data-toggle="modal">create</a></div>
                     <div class="panel-body juries">
                     </div>
@@ -166,8 +167,8 @@ nav .credits {
 
             </div>
           
-            <div class="col-sm-8">
-                <h4 class="clearfix">Events <a href="#na-modal" data-toggle="modal" class="pull-right">Add an event</a></h4>
+            <div class="col-sm-9">
+                <h4 class="clearfix">Events <a href="#add-event-modal" data-toggle="modal" class="pull-right">Add an event</a></h4>
                 <table class="table table-striped">
                     <thead>
                         <tr>
@@ -258,6 +259,37 @@ nav .credits {
         </div>
     </div>
 
+    <div id="add-event-modal" class="modal fade">
+        <div class="modal-dialog model-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4>Add an event</h4>
+                </div>
+                <div class="modal-body clearfix">
+                    <form role="form">
+                        <div class="form-group">
+                            <label for="event-jury">Jury ID</label>
+                            <input type="text" class="form-control" id="event-jury" placeholder="Enter jury ID">
+                        </div>
+                        <div class="form-group">
+                            <label for="event-id">Event ID</label>
+                            <input type="text" class="form-control" id="event-id" placeholder="Enter a unique event ID">
+                        </div>
+                        <div class="form-group">
+                            <label for="event-text">Event text</label>
+                            <input type="text" class="form-control" id="event-text" placeholder="Enter a short event description or question">
+                        </div>
+                        <div class="form-group">
+                            <label for="event-date">Event mature date <i>(not currently supported)</i></label>
+                            <input type="text" class="form-control" id="event-date" placeholder="Enter the date the event matures">
+                        </div>
+                        <button type="submit" class="btn btn-primary pull-right">Submit event</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="explore-modal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -316,28 +348,22 @@ nav .credits {
                 var p = $('<\p>').html('<span class="pull-left">You are not a member of any juries</span>');
                 $('.juries').empty().append(p);
             }
-
-
         }
-
     });
 
     socket.on('my-address', function (address) {
 
         $('.address').html(address);
-
     });
 
     socket.on('blockcount', function (count) {
 
         $('.blocks').html('<span class="pull-left"><b>'+count+'</b> BLOCKS</span><a class="pull-right" href="#explore-modal" data-toggle="modal">explore</a>');
-
     });
 
     socket.on('show-block', function (block) {
 
         $('.block-view').text(block);
-
     });
 
     socket.on('node-up', function () {
@@ -374,7 +400,6 @@ nav .credits {
                 $('.peers').append(p);
             });
         }
-
     });
 
     socket.on('miner', function (status) {
@@ -389,7 +414,6 @@ nav .credits {
             $('.miner-on').hide()
             $('.miner-off').show();
         }
-
     });
 
 
@@ -406,7 +430,6 @@ nav .credits {
 
             socket.emit('miner', 'stop');
         }
-        
     });
 
     $('#password-modal form').on('submit', function(event) {
@@ -423,6 +446,20 @@ nav .credits {
         event.preventDefault();
         socket.emit('create-jury', $('#create-jury-modal input[name=jury-id]').val());
         $('#create-jury-modal').modal('hide');
+    });
+
+
+    $('#add-event-modal form').on('submit', function(event) {
+
+        event.preventDefault();
+
+        var args = {
+            'juryId': $('#event-jury').val(),
+            'eventId': $('#event-id').val(),
+            'eventText': $('#event-text').val()
+        }
+        socket.emit('add-event', args);
+        $('#add-event-modal').modal('hide');
     });
 
     $('#send-credits-modal form').on('submit', function(event) {

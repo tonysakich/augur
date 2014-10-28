@@ -130,10 +130,11 @@ def miner(arg):
     else:
         data = node.send({ 'command': ['mine'] })
 
+    app.logger.info(data)
     if data:
-        if re.match('miner on', data):
+        if re.match('miner on', data) or re.match('miner is currently: on', data):
             emit('miner', 'on')
-        elif re.match('miner is now turned off', data):
+        elif re.match('miner is now turned off', data) or re.match('miner is currently: off', data):
             emit('miner', 'off')
         else:
             emit('miner', 'error')
@@ -149,6 +150,14 @@ def send_credits(address, amount):
 def create_jury(name):
 
     data = node.send({ 'command':['create_jury', name] })
+
+
+@socketio.on('add-event', namespace='/socket.io/')
+def buy_shares(args):
+
+    data = node.send({ 'command':['ask_decision', args['juryId'], args['eventId'], '"'+args['eventText']+'"'] })
+
+    app.logger.info(data)
 
 
 @socketio.on('buy-shares', namespace='/socket.io/')
