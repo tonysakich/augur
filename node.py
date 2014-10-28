@@ -115,7 +115,9 @@ class Node(Thread):
         msg['version'] = '0.0009'
 
         json_msg = json.dumps(msg)
-        self.app.logger.info('sending: '+json_msg)
+
+        #self.app.logger.debug('sending: '+json_msg)
+
         padded_json = str(len(json_msg)).rjust(5, '0') + json_msg
 
         #self.app.logger.debug(padded_json)

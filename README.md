@@ -9,6 +9,13 @@
 
 ### Installation
 
+#### *nix
+- checkout Truthcoin-UI next to Truthcoin-POW (or change config path in app.py)
+- $ cd Truthcoin-UI
+- $ pip -r install requirements.txt
+- $ python app.py
+- http://localhost:9000
+
 #### Windows
 Windows installation is a quite bit more involved than any *nix platform. Here are some steps:
 
@@ -19,10 +26,3 @@ Windows installation is a quite bit more involved than any *nix platform. Here a
 5. Finally, go back to the `Start Menu` type `cmd` and press `Enter`, then type `pip install flask flask-socketio`. 
 
 You can run the UI by double clicking on `app.py`.
-
-#### *nix
-- checkout Truthcoin-UI next to Truthcoin-POW (or change config path in app.py)
-- $ cd Truthcoin-UI
-- $ pip -r requirements.txt
-- $ python app.py
-- http://localhost:9000

@@ -81,15 +81,20 @@ nav .credits {
     overflow: hidden;
     text-overflow: ellipsis;
 }
-
+.network .miner-off span {
+    color: red;
+}
+.network .miner-on span {
+    color: green;
+}
 .network .blocks {
     margin-bottom: 15px;
 }
 .network fieldset {
-
+    margin-top: 15px;
 }
 .network fieldset legend {
-    font-size: 11px;
+    font-size: 12px;
     margin-bottom: 10px;
 }
 
@@ -104,14 +109,22 @@ nav .credits {
                 <h1 class="navbar-brand"><span>Truthcoin</h1>
             </div>
             <ul class="nav navbar-nav navbar-right">
-                <li class="dropdown">
-                    <button class="btn btn-danger node-control" data-toggle="dropdown">Node stopped&nbsp;<span class="caret"></span></button>
-                    <ul class="dropdown-menu running-menu hidden" role="menu">
-                        <li><a href="#" id="toggle-miner" class="off">Start miner</a></li>
-                        <li><a href="#" id="stop-node">Stop node</a></li>
-                    </ul>
-                    <ul class="dropdown-menu stopped-menu" role="menu">
+                <li class="dropdown node-stopped">
+                    <button class="btn btn-danger" data-toggle="dropdown">Node stopped&nbsp;<span class="caret"></span></button>
+                    <ul class="dropdown-menu" role="menu">
                         <li><a href="#password-modal" data-toggle="modal">Start node</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown node-starting" style="display:none;">
+                    <button class="btn btn-warning" data-toggle="dropdown">Node starting...</button>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="#" id="toggle-miner" class="off">Cancel</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown node-running" style="display:none;">
+                    <button class="btn btn-success" data-toggle="dropdown">Node running&nbsp;<span class="caret"></span></button>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="#" id="stop-node">Stop node</a></li>
                     </ul>
                 </li>
             </ul>
@@ -119,7 +132,7 @@ nav .credits {
         
     </nav>
 
-    <section id="main" class="container hidden">
+    <section id="main" class="container" style="display:none;">
 
         <div class="dash page row">
 
@@ -142,6 +155,8 @@ nav .credits {
                     <div class="panel-heading clearfix"><span class="pull-left">Network</span></div>
                     <div class="panel-body">
                         <p class="blocks clearfix"></p>
+                        <p class="miner-control miner-off clearfix"><span class="pull-left">MINER OFF</span><a href="#" class="pull-right">start</a></p>
+                        <p class="miner-control miner-on clearfix" style="display:none;"><span class="pull-left">MINER ON</span><a href="#" class="pull-right">stop</a></p>
                         <fieldset>
                             <legend>PEERS</legend>
                             <div class="peers"></div>
@@ -327,10 +342,10 @@ nav .credits {
 
     socket.on('node-up', function () {
 
-        $('#main').removeClass('hidden');
-        $('.node-control').removeClass('btn-danger').addClass('btn-success').html('Node running&nbsp;<span class="caret"></span>');
-        $('.stopped-menu').addClass('hidden');
-        $('.running-menu').removeClass('hidden');
+        $('#main').show();
+        $('.node-stopped').hide();
+        $('.node-starting').hide();
+        $('.node-running').show();
 
         socket.emit('my_address');
         socket.emit('info', 'my_address');
@@ -341,10 +356,10 @@ nav .credits {
 
     socket.on('node-down', function () {
 
-        $('#main').addClass('hidden');
-        $('.node-control').addClass('btn-danger').removeClass('btn-success').html('Node stopped&nbsp;<span class="caret"></span>');
-        $('.stopped-menu').removeClass('hidden');
-        $('.running-menu').addClass('hidden');
+        $('#main').hide();
+        $('.node-stopped').show();
+        $('.node-starting').hide();
+        $('.node-running').hide();
     });
 
     socket.on('peers', function (peers) {
@@ -366,11 +381,13 @@ nav .credits {
 
         if (status == 'on') {
 
-            $('#toggle-miner').text('Stop miner').removeClass('off').addClass('on');
+            $('.miner-off').hide();
+            $('.miner-on').show()
 
         } else {
 
-            $('#toggle-miner').text('Start miner').removeClass('on').addClass('off');
+            $('.miner-on').hide()
+            $('.miner-off').show();
         }
 
     });
@@ -379,16 +396,15 @@ nav .credits {
     ////
     // actions
 
-    $('#toggle-miner').on('click', function() {
+    $('.miner-control a').on('click', function() {
 
-        if ($('#toggle-miner').hasClass('off')) {
+        if ($('.miner-off').is(':visible')) {
 
             socket.emit('miner', 'start');
             
-        } else {
+        } else if ($('.miner-on').is(':visible')) {
 
             socket.emit('miner', 'stop');
-
         }
         
     });
@@ -397,6 +413,8 @@ nav .credits {
 
         event.preventDefault();
         socket.emit('start', $('#password-modal input[name=password]').val());
+        $('.node-stopped').hide();
+        $('.node-starting').show();
         $('#password-modal').modal('hide');
     });
 
