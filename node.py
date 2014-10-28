@@ -73,35 +73,21 @@ class Node(Thread):
 
         app.logger.info(response)
 
+    @property
+    def python_cmd(self):
+        if sys.platform == 'win32':
+            result = os.path.split(sys.executable)[:-1] + ('pythonw.exe',)
+        else:
+            result = ('python',)
+        return os.path.join(*result)
 
     def start_node(self, password):
-
-        if sys.platform == 'win32':
-
-            pypath = list(os.path.split(sys.executable))
-            pypath[-1] = 'pythonw.exe'
-            os.system('start ' + os.path.join(*pypath) +  ' threads.py ' + password)
-            sys.exit(0)
-
-        else:
-                 
-            cmd = os.path.join(self.app.config['TRUTHCOIN_PATH'], 'threads.py')
-
-            Popen(['python', cmd, password])
+        cmd = os.path.join(self.app.config['TRUTHCOIN_PATH'], 'threads.py')
+        Popen([self.python_cmd, cmd, password])
 
     def stop_node(self):
-
-        if sys.platform == 'win32':
-
-            pypath = list(os.path.split(sys.executable))
-            pypath[-1] = 'pythonw.exe'
-            os.system('start ' + os.path.join(*pypath) +  ' truth_cli.py stop')
-            sys.exit(0)
-
-        else:
-                 
-            cmd = os.path.join(self.app.config['TRUTHCOIN_PATH'], 'truth_cli.py')
-            status = call(['python', cmd, 'stop'])
+        cmd = os.path.join(self.app.config['TRUTHCOIN_PATH'], 'truth_cli.py')
+        status = call([self.python_cmd, cmd, 'stop'])
 
     def connect(self):
 
@@ -129,6 +115,7 @@ class Node(Thread):
         msg['version'] = '0.0009'
 
         json_msg = json.dumps(msg)
+        self.app.logger.info('sending: '+json_msg)
         padded_json = str(len(json_msg)).rjust(5, '0') + json_msg
 
         #self.app.logger.debug(padded_json)
