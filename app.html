@@ -1,0 +1,441 @@
+<!doctype html>
+<!--[if IE 9]><html class="lt-ie10" lang="en" > <![endif]-->
+<html lang="en" data-useragent="Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0)">
+
+<head>
+
+<title>Truthcoin</title>
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.1/css/bootstrap.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.min.css" />
+
+<link href='http://fonts.googleapis.com/css?family=Roboto:400,400italic,300,300italic,700italic,700' rel='stylesheet' type='text/css'>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.1/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
+    
+<style>
+
+body {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 200;
+}
+h1, h2, h3, h4, h5 {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 200;
+}
+
+h4 a {
+    font-size: 14px;
+}
+table thead th{
+    font-weight: 400;
+}
+nav h1 {
+    font-size: 18px;
+    font-weight: 200;
+    margin: 0px 0px 0px 0px;
+}
+nav h1 span {
+    font-weight: 400;
+}
+nav .credits {
+    margin-left: 20px;
+    font-weight: bold;
+}
+
+.nav .dropdown button {
+    border-radius: 0px;
+    margin-top: 7px;
+}
+
+.sidebar .panel {
+    font-size: 12px;
+}
+
+#password-modal .modal-dialog {
+    width: 400px;
+}
+#create-jury-modal .modal-dialog {
+    width: 400px;
+}
+#explore-modal .modal-dialog {
+    width: 90%;
+}
+#explore-modal pre {
+    font-size: 12px;
+}
+#explore-modal .input-group {
+    width: 250px;
+}
+#send-credits-modal #dest-address {
+    width: 290px;
+}
+.address {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.network .blocks {
+    margin-bottom: 15px;
+}
+.network fieldset {
+
+}
+.network fieldset legend {
+    font-size: 11px;
+    margin-bottom: 10px;
+}
+
+
+</style>
+
+<body>
+
+    <nav class="navbar navbar-default" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <h1 class="navbar-brand"><span>Truthcoin</h1>
+            </div>
+            <ul class="nav navbar-nav navbar-right">
+                <li class="dropdown">
+                    <button class="btn btn-danger node-control" data-toggle="dropdown">Node stopped&nbsp;<span class="caret"></span></button>
+                    <ul class="dropdown-menu running-menu hidden" role="menu">
+                        <li><a href="#" id="toggle-miner" class="off">Start miner</a></li>
+                        <li><a href="#" id="stop-node">Stop node</a></li>
+                    </ul>
+                    <ul class="dropdown-menu stopped-menu" role="menu">
+                        <li><a href="#password-modal" data-toggle="modal">Start node</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        
+    </nav>
+
+    <section id="main" class="container hidden">
+
+        <div class="dash page row">
+
+            <div class="col-sm-4 sidebar">
+                <div class="panel panel-success account">
+                    <div class="panel-heading clearfix">Account</div>
+                    <div class="panel-body">
+                        <p class="address"></p>
+                        <p class="credits"></p>       
+                    </div>
+                </div>
+
+                <div class="panel panel-success">
+                    <div class="panel-heading clearfix"><span class="pull-left">Juries</span><a class="pull-right" href="#create-jury-modal" data-toggle="modal">create</a></div>
+                    <div class="panel-body juries">
+                    </div>
+                </div>
+
+                <div class="panel panel-default network">
+                    <div class="panel-heading clearfix"><span class="pull-left">Network</span></div>
+                    <div class="panel-body">
+                        <p class="blocks clearfix"></p>
+                        <fieldset>
+                            <legend>PEERS</legend>
+                            <div class="peers"></div>
+                        </fieldset>
+                    </div>
+                </div>
+
+            </div>
+          
+            <div class="col-sm-8">
+                <h4 class="clearfix">Events <a href="#na-modal" data-toggle="modal" class="pull-right">Add an event</a></h4>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Description<th><th>ID</th><th>Author</th><th>Muture Date</th>
+                        <tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+    </section>
+
+    <footer>
+
+        <div class="row container clearfix">
+
+        </div>
+
+    </footer>
+
+
+    <!-- modals dialogs -->
+
+    <div id="password-modal" class="modal fade">
+        <div class="modal-dialog model-sm">
+            <div class="modal-content">
+                <div class="modal-body clearfix">
+                    <form>
+                        <div class="col-lg-12">
+                            <div class="input-group">
+                                <input type="text" name="password" class="form-control" placeholder="Enter your password or public key">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-success" type="submit">Start</button>
+                                </span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="create-jury-modal" class="modal fade">
+        <div class="modal-dialog model-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p>Create a new jury by entering a unique ID.  You will automatically be added to this jury and awarded all reputation to start.</p>
+                </div>
+                <div class="modal-body clearfix">
+                    <form>
+                        <div class="col-lg-12">
+                            <div class="input-group">
+                                <input type="text" name="jury-id" class="form-control" placeholder="Enter a new jury ID">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-primary" type="submit">Create</button>
+                                </span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="send-credits-modal" class="modal fade">
+        <div class="modal-dialog model-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4>Send credits</h4>
+                </div>
+                <div class="modal-body">
+                    <form class="form-inline" role="form">
+                        <div class="form-group">
+                            <label class="sr-only" for="dest-address">Destination address</label>
+                            <input type="text" class="form-control" name="dest-address" id="dest-address" placeholder="Enter destination address">
+                        </div>
+                        <div class="form-group">
+                            <label class="sr-only" for="amount">Amount</label>
+                            <input type="text" name="amount" id="amount" class="form-control" placeholder="Amount">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Send</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="explore-modal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <form>
+                        <div class="col-lg-6">
+                            <div class="input-group">
+                                <input type="text" name="block-number" class="form-control" placeholder="Enter block number">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-info" type="submit">View</button>
+                                </span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-body">
+                    <pre class="block-view"></pre>
+                </div>
+            </div>
+        </div>
+    </div>  
+
+    <div id="na-modal" class="modal fade">
+        <div class="modal-dialog model-sm">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <h4 class="text-center">Not yet implemented</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+(function () {
+
+    var socket = io.connect(window.location.protocol + '//' + document.domain + ':' + location.port + '/socket.io/');
+
+    ////
+    // socket events
+
+    socket.on('info', function (data) {
+
+        if (data) {
+
+            $('.credits').html('<span class="pull-left">'+data.amount+' CREDITS</span><a class="pull-right" href="#send-credits-modal" data-toggle="modal">send</a>');
+
+            if (Object.keys(data.votecoin).length) {
+
+                $.each(data.votecoin, function(jury, rep) {
+                    var p = $('<\p>').html('<span class="pull-left">'+jury+'</span><span class="pull-right">'+rep+'</span>');
+                    $('.juries').empty().append(p);
+                });
+
+            } else {
+
+                var p = $('<\p>').html('<span class="pull-left">You are not a member of any juries</span>');
+                $('.juries').empty().append(p);
+            }
+
+
+        }
+
+    });
+
+    socket.on('my-address', function (address) {
+
+        $('.address').html(address);
+
+    });
+
+    socket.on('blockcount', function (count) {
+
+        $('.blocks').html('<span class="pull-left"><b>'+count+'</b> BLOCKS</span><a class="pull-right" href="#explore-modal" data-toggle="modal">explore</a>');
+
+    });
+
+    socket.on('show-block', function (block) {
+
+        $('.block-view').text(block);
+
+    });
+
+    socket.on('node-up', function () {
+
+        $('#main').removeClass('hidden');
+        $('.node-control').removeClass('btn-danger').addClass('btn-success').html('Node running&nbsp;<span class="caret"></span>');
+        $('.stopped-menu').addClass('hidden');
+        $('.running-menu').removeClass('hidden');
+
+        socket.emit('my_address');
+        socket.emit('info', 'my_address');
+        socket.emit('peers');
+        socket.emit('miner', 'status');
+        socket.emit('blockcount');
+    });
+
+    socket.on('node-down', function () {
+
+        $('#main').addClass('hidden');
+        $('.node-control').addClass('btn-danger').removeClass('btn-success').html('Node stopped&nbsp;<span class="caret"></span>');
+        $('.stopped-menu').removeClass('hidden');
+        $('.running-menu').addClass('hidden');
+    });
+
+    socket.on('peers', function (peers) {
+
+        if (peers.length) {
+
+            $('.peers').empty();
+
+            $.each(peers, function(i, peer) {
+
+                var p = $('<\p>').text(peer);
+                $('.peers').append(p);
+            });
+        }
+
+    });
+
+    socket.on('miner', function (status) {
+
+        if (status == 'on') {
+
+            $('#toggle-miner').text('Stop miner').removeClass('off').addClass('on');
+
+        } else {
+
+            $('#toggle-miner').text('Start miner').removeClass('on').addClass('off');
+        }
+
+    });
+
+
+    ////
+    // actions
+
+    $('#toggle-miner').on('click', function() {
+
+        if ($('#toggle-miner').hasClass('off')) {
+
+            socket.emit('miner', 'start');
+            
+        } else {
+
+            socket.emit('miner', 'stop');
+
+        }
+        
+    });
+
+    $('#password-modal form').on('submit', function(event) {
+
+        event.preventDefault();
+        socket.emit('start', $('#password-modal input[name=password]').val());
+        $('#password-modal').modal('hide');
+    });
+
+    $('#create-jury-modal form').on('submit', function(event) {
+
+        event.preventDefault();
+        socket.emit('create-jury', $('#create-jury-modal input[name=jury-id]').val());
+        $('#create-jury-modal').modal('hide');
+    });
+
+    $('#send-credits-modal form').on('submit', function(event) {
+
+        event.preventDefault();
+        var address = $('#send-credits-modal input[name=dest-address]').val();
+        var amount = $('#send-credits-modal input[name=amount]').val();
+        socket.emit('send-credits', address, amount);
+        $('#send-credits-modal').modal('hide');
+    });
+
+    $('#explore-modal form').on('submit', function(event) {
+
+        event.preventDefault();
+        socket.emit('get-block', $('#explore-modal input[name=block-number]').val());
+    });
+
+
+    $('#stop-node').on('click', function() {
+        socket.emit('stop');
+    });
+
+    socket.emit('my_address');
+    socket.emit('info', 'my_address');
+    socket.emit('peers');
+    socket.emit('miner', 'status');
+    socket.emit('blockcount');
+
+    socket.emit('check-status');
+
+})()
+</script>
+</body>
+</html>
