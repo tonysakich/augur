@@ -1,0 +1,26 @@
+{
+   "B": 1000, 
+   "PM_id": "world_ending_PM", 
+   "count": 794, 
+   "decisions": [
+      "world_end_this_week"
+   ], 
+   "fees": 0, 
+   "owner": "11gt9t8wqqmBPt8rSmAnhcyvwA2QrpM", 
+   "pubkeys": [
+      "04fe2654f07ffe0c66529707762aabebbec19870aaa36dbc503526a556e55c4926f093a23596337bce001a5a219d800917359f4bc5d5ed58a727243580ce1d2e20"
+   ], 
+   "signatures": [
+      "HDpZ0bBHP4m3P0MgxCCUtTv7R+/H6UcLKwscFBJAmwodZRnopdG5xNqGaf2Lwq9idyaEEKbJBRJzO4bzqzvWfBo="
+   ], 
+   "states": [
+      "yes", 
+      "no"
+   ], 
+   "states_combinatory": [
+      [
+         1
+      ]
+   ], 
+   "type": "prediction_market"
+}
