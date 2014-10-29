@@ -456,7 +456,7 @@ nav .credits {
     socket.on('markets', function (markets) {
         if (markets.length) {
             $('.markets').empty();
-            $.each(markets, function(i, m) {
+            $.each(markets, function(i, e) {
                 $('.markets').append('<tr><td>'+e.PM_id+'</td><td>'+e.count+'</td><td>'+JSON.stringify(e.decisions)+'</td><td>'+e.fees+'</tr>');
             });
         }
