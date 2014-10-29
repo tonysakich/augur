@@ -175,10 +175,23 @@ nav .credits {
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>Description<th><th>ID</th><th>Author</th><th>Muture Date</th>
+                            <th>Description</th><th>ID</th><th>Jury</th><th>Muture Date</th>
                         <tr>
                     </thead>
-                    <tbody>
+                    <tbody class="events">
+                    </tbody>
+                </table>
+
+                <br><br><br>
+
+                <h4 class="clearfix">Markets <a href="#add-market-modal" data-toggle="modal" class="pull-right">Add a market</a></h4>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Description<th><th>ID</th><th>Volume</th><th>States</th>
+                        <tr>
+                    </thead>
+                    <tbody class="markets">
                     </tbody>
                 </table>
             </div>
@@ -405,6 +418,43 @@ nav .credits {
         }
     });
 
+    socket.on('events', function (events) {
+
+        if (events.length) {
+
+            $('.events').empty();
+
+            $.each(events, function(i, e) {
+
+                $('.events').append('<tr><td>'+e.txt+'</td><td>'+e.decision_id+'</td><td>'+e.vote_id+'</td><td>undefined</td></tr>');
+            });
+        }
+    });
+
+    socket.on('markets', function (markets) {
+
+        if (markets.length) {
+
+            $('.markets').empty();
+
+            $.each(markets, function(i, m) {
+
+                console.log(m);
+            });
+        }
+    });
+
+    socket.on('juries', function (juries) {
+
+        if (juries.length) {
+
+            $('.juries').empty();
+
+            $.each(juries, function(i, jury) {
+
+            });
+        }
+    });
     socket.on('miner', function (status) {
 
         if (status == 'on') {
@@ -492,6 +542,10 @@ nav .credits {
     socket.emit('blockcount');
 
     socket.emit('check-status');
+
+    socket.emit('events');
+    socket.emit('markets');
+    socket.emit('juries');
 
 })()
 </script>

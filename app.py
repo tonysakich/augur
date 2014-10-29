@@ -114,6 +114,24 @@ def peers():
         emit('peers', peers)
 
 
+@socketio.on('events', namespace='/socket.io/')
+def events():
+
+    emit('events', node.events[:10])
+
+
+@socketio.on('markets', namespace='/socket.io/')
+def markets():
+
+    emit('markets', node.markets[:10])
+
+
+@socketio.on('juries', namespace='/socket.io/')
+def juries():
+
+    emit('juries', node.juries[:10])
+
+
 @socketio.on('start', namespace='/socket.io/')
 def start(password):
 

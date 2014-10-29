@@ -17,9 +17,14 @@ class Node(Thread):
         self.socketio = socketio
         self.running = False
 
+        self.markets = []
+        self.events = []
+        self.juries = []
+
         Thread.__init__(self)
 
         self.start()
+
 
     def exit(self, wait_for_exit=False):
 
@@ -39,6 +44,11 @@ class Node(Thread):
                 # check if node just came up
                 if not self.running:
 
+                    self.parse_block_chain()
+                    self.socketio.emit('events', self.events[:10], namespace='/socket.io/')
+                    self.socketio.emit('markets', self.markets[:10], namespace='/socket.io/')
+                    self.socketio.emit('juries', self.juries[:10], namespace='/socket.io/')
+
                     self.socketio.emit('node-up', namespace='/socket.io/')
                     self.running = True
 
@@ -50,8 +60,11 @@ class Node(Thread):
                     self.blockcount = int(blockcount)
                     self.socketio.emit('blockcount', self.blockcount, namespace='/socket.io/')
 
-                    data = self.send({ 'command': ['info', 'my_address'] })
+                    # fetch and examine block txs
+                    block = self.send({ 'command': ['info', 'blockcount'] })
+                    self.examine_block(block)
 
+                    data = self.send({ 'command': ['info', 'my_address'] })
                     if data:
 
                         self.socketio.emit('info', data, namespace='/socket.io/')
@@ -65,13 +78,6 @@ class Node(Thread):
                     self.running = False
 
             time.sleep(self.sleep_interval)
-
-
-    def check_status(self):
-
-        repsonse = node.send( {'command': ['my_address']} )
-
-        app.logger.info(response)
 
     @property
     def python_cmd(self):
@@ -194,3 +200,39 @@ class Node(Thread):
             pass
 
         return data
+
+    def examine_block(self, block):
+
+        if block.get('txs'):
+
+            for tx in block['txs']:
+
+                if tx['type'] == 'propose_decision':
+
+                    self.events.append(tx)
+
+                if tx['type'] == 'prediction_market':
+
+                    self.markets.append(tx)
+
+                if tx['type'] == 'create_jury':
+
+                    self.juries.append(tx)        
+
+
+    def parse_block_chain(self):
+
+        self.markets = []
+        self.events = []
+        self.juries = []
+
+        for n in xrange(int(self.send({'command':['blockcount']}))): 
+
+            j = self.send({'command':['info', n]})
+
+            try:
+                block = eval(str(j))
+            except:
+                self.app.logger.error('error parsing block')
+
+            self.examine_block(block)
