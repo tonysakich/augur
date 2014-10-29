@@ -305,6 +305,41 @@ nav .credits {
         </div>
     </div>
 
+    <div id="add-market-modal" class="modal fade">
+        <div class="modal-dialog model-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4>Add a market</h4>
+                </div>
+                <div class="modal-body clearfix">
+                    <form role="form">
+                        <div class="form-group">
+                            <label for="market-id">Market ID</label>
+                            <input type="text" class="form-control" id="market-id" placeholder="Enter a market ID">
+                        </div>
+                        <div class="form-group">
+                            <label for="market-investment">Initial Investment (B)</label>
+                            <input type="text" class="form-control" id="market-investment" placeholder="Enter you initial investment in credits">
+                        </div>
+                        <div class="form-group">
+                            <label for="market-events">Market Events</label>
+                            <input type="text" class="form-control" id="market-events" placeholder="Enter a comma seperate list of event IDs">
+                        </div>
+                        <div class="form-group">
+                            <label for="market-states">Market States</label>
+                            <input type="text" class="form-control" id="market-states" placeholder="Enter a comma seperate list of states">
+                        </div>
+                        <div class="form-group">
+                            <label for="market-dep">State Dependency</label>
+                            <input type="text" class="form-control" id="market-dep" placeholder="Maybe 1?  Maybe -4? Fuck if I know!">
+                        </div>
+                        <button type="submit" class="btn btn-primary pull-right">Submit event</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="explore-modal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -515,6 +550,21 @@ nav .credits {
         }
         socket.emit('add-event', args);
         $('#add-event-modal').modal('hide');
+    });
+
+    $('#add-market-modal form').on('submit', function(event) {
+
+        event.preventDefault();
+
+        var args = {
+            'marketId': $('#market-id').val(),
+            'marketInv': $('#market-investment').val(),
+            'marketEvents': $('#market-events').val(),
+            'marketStates': $('#market-states').val(),
+            'marketDep': $('#market-dep').val()
+        }
+        socket.emit('add-market', args);
+        $('#add-market-modal').modal('hide');
     });
 
     $('#send-credits-modal form').on('submit', function(event) {

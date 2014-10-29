@@ -17,6 +17,8 @@ class Node(Thread):
         self.socketio = socketio
         self.running = False
 
+        self.my_address = None
+
         self.markets = []
         self.events = []
         self.juries = []
@@ -48,6 +50,10 @@ class Node(Thread):
                     self.socketio.emit('events', self.events[:10], namespace='/socket.io/')
                     self.socketio.emit('markets', self.markets[:10], namespace='/socket.io/')
                     self.socketio.emit('juries', self.juries[:10], namespace='/socket.io/')
+
+                    address = self.send({ 'command': ['my_address'] })
+                    if address:
+                        self.my_address = address
 
                     self.socketio.emit('node-up', namespace='/socket.io/')
                     self.running = True
