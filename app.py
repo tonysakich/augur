@@ -351,7 +351,7 @@ def add_market(args):
 
     tx = {
         "B": args['marketInv'],
-        "PM_id": args['margetId'],
+        "PM_id": args['marketId'],
         "decisions": args["marketEvents"].split(','),
         "fees": 0,
         "owner": node.my_address,
