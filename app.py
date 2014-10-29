@@ -190,8 +190,8 @@ def buy_shares():
     pass    
 
 
-@socketio.on('make-pm', namespace='/socket.io/')
-def make_pm(args):
+@socketio.on('add-market', namespace='/socket.io/')
+def add_market(args):
     """
     Example:
         What is the address or pubkey of the owner of the PM?
@@ -239,17 +239,19 @@ def make_pm(args):
            "type": "prediction_market"
         }
     """
+
     privkey = tools.db_get("privkey")
     pubkey = tools.privtopub(privkey)
+
     tx = {
-        "B": args["B"],
-        "PM_id": args["PM_id"],
-        "decisions": args["decisions"],
+        "B": args['marketInv'],
+        "PM_id": args['margetId'],
+        "decisions": args["marketEvents"].split(','),
         "fees": 0,
-        "owner": args["owner"], # tools.make_address([pubkey], 1)
+        "owner": node.my_address,
         "pubkeys": [pubkey],
-        "states": args["states"],
-        "states_combinatory": args["states_combinatory"],
+        "states": args["marketStates"].split(','),
+        "states_combinatory": args["marketDep"],
         "type": "prediction_market",
     }
     signature = tools.sign(tx, privkey)
