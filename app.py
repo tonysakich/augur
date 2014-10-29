@@ -349,53 +349,6 @@ def add_market(args):
     }
 
     """
-    Example:
-        What is the address or pubkey of the owner of the PM?
-        >11gt9t8wqqmBPt8rSmAnhcyvwA2QrpM
-        What is the unique name for this new prediction market?
-        >weatherPM1
-        how big should B be? Initial investment is B*ln(n) where n is the number of states
-        >10000
-        how many decisions is this prediction market to be based upon?
-        >1
-        What is the unique name of the 0 decision?
-        >what
-        how many states can this PM result in?
-        >2
-        what is the text title of the 0 state?
-        >rain
-        how does the 0 state depend upon the outcome of the decisions? For example: if there are 2 decisions, and this market only comes true when the first is "yes" and the second is "no", then you would put: "1 0" here.
-        >1
-        what is the text title of the 1 state?
-        >sun
-        {
-           "B": 10000, 
-           "PM_id": "weatherPM1", 
-           "count": 714, 
-           "decisions": [
-              "what"
-           ], 
-           "fees": 0, 
-           "owner": "11gt9t8wqqmBPt8rSmAnhcyvwA2QrpM", 
-           "pubkeys": [
-              "04fe2654f07ffe0c66529707762aabebbec19870aaa36dbc503526a556e55c4926f093a23596337bce001a5a219d800917359f4bc5d5ed58a727243580ce1d2e20"
-           ], 
-           "signatures": [
-              "G8fGpV5fF8QDOVgC/1QOtORMv4tMG/wQL7z6xEgNu+ArkHIRyHZvBECXDipUduXJLB0RiyKtZHhkzV78Yi/VJQg="
-           ], 
-           "states": [
-              "rain", 
-              "sun"
-           ], 
-           "states_combinatory": [
-              [
-                 1
-              ]
-           ], 
-           "type": "prediction_market"
-        }
-    """
-
     privkey = tools.db_get("privkey")
     pubkey = tools.privtopub(privkey)
 

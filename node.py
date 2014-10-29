@@ -232,6 +232,7 @@ class Node(Thread):
             try:
                 # block = eval(str(j))
                 # block = json.loads(j)
+                block.replace(r"\\", r'\"')
                 block = j
             except Exception as exc:
                 self.app.logger.error('error parsing block ' + str(n) + '\n' + str(exc))
