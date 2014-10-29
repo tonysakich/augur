@@ -67,11 +67,11 @@ class Node(Thread):
                     self.socketio.emit('blockcount', self.blockcount, namespace='/socket.io/')
 
                     # fetch and examine block txs
-                    block = self.send({ 'command': ['info', 'blockcount'] })
+                    block = ast.literal_eval(self.send({ 'command': ['info', 'blockcount'] }))
                     if block['count']:
                         self.examine_block(block)
 
-                    data = self.send({ 'command': ['info', 'my_address'] })
+                    data = ast.literal_eval(self.send({ 'command': ['info', 'my_address'] }))
                     if data:
                         self.socketio.emit('info', data, namespace='/socket.io/')
 
