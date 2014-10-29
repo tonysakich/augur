@@ -242,14 +242,15 @@ def buy_shares(args):
     What is your brainwallet
     >my_password
     now for a little proof of work. This may take several minutes. The purpose of this pow is to make it more difficult for a front runner to steal your trade.
-    tx for copy/pasting into pushtx: eyJjb3VudCI6IDc5OCwgIm5vbmNlIjogNDQ4MDk3OTgwNjI3MTk5NzUzNDg3MjkxNTE5NzUyNDU0
-    MTUwNzA2OSwgImJ1eSI6IFsxMCwgMF0sICJ0eXBlIjogImJ1eV9zaGFyZXMiLCAiUE1faWQiOiAi
-    d29ybGRfZW5kaW5nX1BNIiwgInNpZ25hdHVyZXMiOiBbIkhBUngrUzlLcjZ3cEtIbDJHdm9YYTFR
-    a3I2bS8vYWY1dUVaZ05OQ1BncHhZR1EzZlVpc0pab2RSSUFOaURvMFRWT0RTRkdYNkx2WSs3bWhn
-    eWlod3dMZz0iXSwgInB1YmtleXMiOiBbIjA0ZmUyNjU0ZjA3ZmZlMGM2NjUyOTcwNzc2MmFhYmVi
-    YmVjMTk4NzBhYWEzNmRiYzUwMzUyNmE1NTZlNTVjNDkyNmYwOTNhMjM1OTYzMzdiY2UwMDFhNWEy
-    MTlkODAwOTE3MzU5ZjRiYzVkNWVkNThhNzI3MjQzNTgwY2UxZDJlMjAiXSwgInByaWNlX2xpbWl0
-    IjogNX0=
+    tx for copy/pasting into pushtx:
+        eyJjb3VudCI6IDc5OCwgIm5vbmNlIjogNDQ4MDk3OTgwNjI3MTk5NzUzNDg3MjkxNTE5NzUyNDU0
+        MTUwNzA2OSwgImJ1eSI6IFsxMCwgMF0sICJ0eXBlIjogImJ1eV9zaGFyZXMiLCAiUE1faWQiOiAi
+        d29ybGRfZW5kaW5nX1BNIiwgInNpZ25hdHVyZXMiOiBbIkhBUngrUzlLcjZ3cEtIbDJHdm9YYTFR
+        a3I2bS8vYWY1dUVaZ05OQ1BncHhZR1EzZlVpc0pab2RSSUFOaURvMFRWT0RTRkdYNkx2WSs3bWhn
+        eWlod3dMZz0iXSwgInB1YmtleXMiOiBbIjA0ZmUyNjU0ZjA3ZmZlMGM2NjUyOTcwNzc2MmFhYmVi
+        YmVjMTk4NzBhYWEzNmRiYzUwMzUyNmE1NTZlNTVjNDkyNmYwOTNhMjM1OTYzMzdiY2UwMDFhNWEy
+        MTlkODAwOTE3MzU5ZjRiYzVkNWVkNThhNzI3MjQzNTgwY2UxZDJlMjAiXSwgInByaWNlX2xpbWl0
+        IjogNX0=
 
     added tx: 
     {
@@ -313,10 +314,11 @@ def make_pm(args):
     >1
     what is the text title of the 1 state?
     >no
-    tx for copy/pasting into pushtx: eyJCIjogMTAwMCwgInR5cGUiOiAicHJlZGljdGlvbl9tYXJrZXQiLCAic3RhdGVzIjogWyJ5ZXMi
-    LCAibm8iXSwgIlBNX2lkIjogIndvcmxkX2VuZGluZ19QTSIsICJmZWVzIjogMCwgIm93bmVyIjog
-    IjExZ3Q5dDh3cXFtQlB0OHJTbUFuaGN5dndBMlFycE0iLCAiZGVjaXNpb25zIjogWyJ3b3JsZF9l
-    bmRfdGhpc193ZWVrIl0sICJzdGF0ZXNfY29tYmluYXRvcnkiOiBbWzFdXX0=
+    tx for copy/pasting into pushtx:
+        eyJCIjogMTAwMCwgInR5cGUiOiAicHJlZGljdGlvbl9tYXJrZXQiLCAic3RhdGVzIjogWyJ5ZXMi
+        LCAibm8iXSwgIlBNX2lkIjogIndvcmxkX2VuZGluZ19QTSIsICJmZWVzIjogMCwgIm93bmVyIjog
+        IjExZ3Q5dDh3cXFtQlB0OHJTbUFuaGN5dndBMlFycE0iLCAiZGVjaXNpb25zIjogWyJ3b3JsZF9l
+        bmRfdGhpc193ZWVrIl0sICJzdGF0ZXNfY29tYmluYXRvcnkiOiBbWzFdXX0=
 
     added tx: 
     {

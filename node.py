@@ -202,37 +202,33 @@ class Node(Thread):
         return data
 
     def examine_block(self, block):
-
-        if block.get('txs'):
-
-            for tx in block['txs']:
-
-                if tx['type'] == 'propose_decision':
-
-                    self.events.append(tx)
-
-                if tx['type'] == 'prediction_market':
-
-                    self.markets.append(tx)
-
-                if tx['type'] == 'create_jury':
-
-                    self.juries.append(tx)        
-
+        try:
+            if block.get('txs'):
+                for tx in block['txs']:
+                    if tx['type'] == 'propose_decision':
+                        self.events.append(tx)
+                    if tx['type'] == 'prediction_market':
+                        self.markets.append(tx)
+                    if tx['type'] == 'create_jury':
+                        self.juries.append(tx)
+        except Exception as exc:
+            self.app.logger.error('error parsing block: \n' + str(exc))
+            print(block)
+            import pdb; pdb.set_trace()
 
     def parse_block_chain(self):
-
         self.markets = []
         self.events = []
         self.juries = []
-
-        for n in xrange(int(self.send({'command':['blockcount']}))): 
-
+        for n in xrange(int(self.send({'command':['blockcount']}))):
             j = self.send({'command':['info', n]})
-
+            # print(j)
             try:
-                block = eval(str(j))
-            except:
-                self.app.logger.error('error parsing block')
-
+                # block = eval(str(j))
+                # block = json.loads(j)
+                block = j
+            except Exception as exc:
+                self.app.logger.error('error parsing block ' + str(n) + '\n' + str(exc))
+                import pdb; pdb.set_trace()
+                continue
             self.examine_block(block)

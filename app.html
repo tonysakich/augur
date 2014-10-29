@@ -432,6 +432,9 @@ nav .credits {
 
     socket.on('markets', function (markets) {
 
+        console.log("hi there");
+        console.log(markets);
+
         if (markets.length) {
 
             $('.markets').empty();
