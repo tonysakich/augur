@@ -12,19 +12,20 @@ from flask.ext.socketio import SocketIO, emit, send
 from werkzeug import secure_filename
 from node import Node
 
-sys.path.insert(0, os.path.join('..'))
-
 app = Flask(__name__, template_folder='.')
 socketio = SocketIO(app)
 node = Node(app, socketio)
 
 app.config['DEBUG'] = True
+
+# change this to point to the core 
 app.config['TRUTHCOIN_PATH'] = '../Truthcoin-POW'
 
-HERE = os.path.dirname(os.path.realpath(__file__))
-sys.path.insert(0, os.path.join(HERE, os.pardir, "Truthcoin-POW"))
-
+# import tools from core
+HOME = os.path.dirname(os.path.realpath(__file__))
+sys.path.insert(0, os.path.join(HOME, app.config['TRUTHCOIN_PATH']))
 import tools
+
 
 ###
 # routes and websocket handlers
@@ -48,7 +49,9 @@ def dash():
 
 @socketio.on('info', namespace='/socket.io/')
 def info(arg):
+
     data = node.send({ 'command': ['info', 'my_address'] })
+
     if data:
         emit('info', data)
 
@@ -96,20 +99,20 @@ def get_block(block_number):
 
 @socketio.on('peers', namespace='/socket.io/')
 def peers():
+
     data = node.send({'command': ['peers']})
+
     if data:
-        data = ast.literal_eval(data)
+
         peers = []
-        try:
-            for peer in data:
-                peers.append("%s:%s" % (peer[0][0], peer[0][1]))
-            if peers:
-                peers = list(set(peers))
-                print peers
-                emit('peers', peers)
-        except Exception as exc:
-            print(exc)
-            import pdb; pdb.set_trace()
+
+        for peer in data:
+            peers.append("%s:%s" % (peer[0][0], peer[0][1]))
+        if peers:
+            peers = list(set(peers))
+            print peers
+            emit('peers', peers)
+
 
 @socketio.on('events', namespace='/socket.io/')
 def events():

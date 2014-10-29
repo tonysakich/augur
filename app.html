@@ -381,6 +381,7 @@ nav .credits {
     // socket events
 
     socket.on('info', function (data) {
+
         if (data) {
             $('.credits').html('<span class="pull-left">'+data.amount+' CREDITS</span><a class="pull-right" href="#send-credits-modal" data-toggle="modal">send</a>');
             if (data.votecoin) {

@@ -67,11 +67,11 @@ class Node(Thread):
                     self.socketio.emit('blockcount', self.blockcount, namespace='/socket.io/')
 
                     # fetch and examine block txs
-                    block = ast.literal_eval(self.send({ 'command': ['info', 'blockcount'] }))
+                    block = self.send({ 'command': ['info', 'blockcount'] })
                     if block['count']:
                         self.examine_block(block)
 
-                    data = ast.literal_eval(self.send({ 'command': ['info', 'my_address'] }))
+                    data = self.send({ 'command': ['info', 'my_address'] })
                     if data:
                         self.socketio.emit('info', data, namespace='/socket.io/')
 
@@ -86,17 +86,21 @@ class Node(Thread):
 
     @property
     def python_cmd(self):
+
         if sys.platform == 'win32':
             result = os.path.split(sys.executable)[:-1] + ('pythonw.exe',)
         else:
             result = ('python',)
+
         return os.path.join(*result)
 
     def start_node(self, password):
+
         cmd = os.path.join(self.app.config['TRUTHCOIN_PATH'], 'threads.py')
         Popen([self.python_cmd, cmd, password])
 
     def stop_node(self):
+
         cmd = os.path.join(self.app.config['TRUTHCOIN_PATH'], 'truth_cli.py')
         status = call([self.python_cmd, cmd, 'stop'])
 
@@ -127,7 +131,7 @@ class Node(Thread):
 
         json_msg = json.dumps(msg)
 
-        # self.app.logger.debug('sending: '+json_msg)
+        #self.app.logger.debug('sending: '+json_msg)
 
         padded_json = str(len(json_msg)).rjust(5, '0') + json_msg
 
@@ -197,16 +201,31 @@ class Node(Thread):
 
             data += d
 
+
+        # do anything and everything here to detect the different 
+        # malformed response data and massage it back into python
+
         try:
-            data = ast.literal_eval(str(data))
-        except Exception as exc:
-            self.app.logger.debug(exc)
+            data = ast.literal_eval(data)
+        except Exception as e:
+            self.app.logger.error(e)
+
+        if type(data) == str and re.match(r'[\{\[]', data):
+
+            try:
+                data = ast.literal_eval(data)
+            except Exception as e:
+                self.app.logger.error(e)
 
         return data
 
+
     def examine_block(self, block):
+
         if block.get('txs'):
+
             for tx in block['txs']:
+
                 if tx['type'] == 'propose_decision':
                     self.events.append(tx)
                 if tx['type'] == 'prediction_market':
@@ -214,14 +233,14 @@ class Node(Thread):
                 if tx['type'] == 'create_jury':
                     self.juries.append(tx)
 
+
     def parse_block_chain(self):
+
         self.markets = []
         self.events = []
         self.juries = []
+
         for n in xrange(int(self.send({'command':['blockcount']}))):
-            j = self.send({'command':['info', n]})
-            block = ast.literal_eval(str(j))
-            if type(block) == str:
-                print("Could not parse block: " + str(n))
-            else:
-                self.examine_block(block)
+
+            block = self.send({'command':['info', n]})
+            self.examine_block(block)
