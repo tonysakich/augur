@@ -21,12 +21,6 @@ app.config['DEBUG'] = True
 # change this to point to the core 
 app.config['TRUTHCOIN_PATH'] = '../Truthcoin-POW'
 
-# import tools from core
-HOME = os.path.dirname(os.path.realpath(__file__))
-sys.path.insert(0, os.path.join(HOME, app.config['TRUTHCOIN_PATH']))
-import tools
-
-
 ###
 # routes and websocket handlers
 
@@ -110,7 +104,6 @@ def peers():
             peers.append("%s:%s" % (peer[0][0], peer[0][1]))
         if peers:
             peers = list(set(peers))
-            print peers
             emit('peers', peers)
 
 
@@ -154,7 +147,6 @@ def miner(arg):
     else:
         data = node.send({ 'command': ['mine'] })
 
-    app.logger.info(data)
     if data:
         if re.match('miner on', data) or re.match('miner is currently: on', data):
             emit('miner', 'on')
@@ -170,6 +162,12 @@ def send_credits(address, amount):
     data = node.send({ 'command':['spend', amount, address] })
 
 
+@socketio.on('send-reps', namespace='/socket.io/')
+def send_credits(address, amount, jury):
+
+    data = node.send({ 'command':['votecoin_spend', amount, jury, address] })
+
+
 @socketio.on('create-jury', namespace='/socket.io/')
 def create_jury(name):
 
@@ -178,26 +176,7 @@ def create_jury(name):
 
 @socketio.on('add-event', namespace='/socket.io/')
 def add_event(args):
-    """Example:
-    
-    $ ./truth_cli.py ask_decision j_1 world_end_this_week is the world going to end sometime this week
 
-    Output:
-    {
-       "count": 793, 
-       "decision_id": "world_end_this_week", 
-       "pubkeys": [
-          "04fe2654f07ffe0c66529707762aabebbec19870aaa36dbc503526a556e55c4926f093a23596337bce001a5a219d800917359f4bc5d5ed58a727243580ce1d2e20"
-       ], 
-       "signatures": [
-          "G8oZq7bqXskySI/HCV4n9xmqe0q+n0j3TFQfCTZvwgLRkOGHKwiBCQF7kATHna5a6aEqZ6fWbBqUoAoHHs9LLV0="
-       ], 
-       "txt": "world_end_this_week is the world going to end sometime this week", 
-       "type": "propose_decision", 
-       "vote_id": "j_1"
-    }
-
-    """
     data = node.send({ 'command':['ask_decision', args['juryId'], args['eventId'], '"'+args['eventText']+'"'] })
 
     app.logger.info(data)
@@ -294,63 +273,6 @@ def buy_shares(args):
 
 @socketio.on('add-market', namespace='/socket.io/')
 def add_market(args):
-    """Example:
-    $ ./truth_cli.py make_PM
-    What is the address or pubkey of the owner of the PM?
-    >11gt9t8wqqmBPt8rSmAnhcyvwA2QrpM
-    What is the unique name for this new prediction market?
-    >world_ending_PM
-    how big should B be? Initial investment is B*ln(n) where n is the number of states
-    >1000
-    how many decisions is this prediction market to be based upon?
-    >1
-    What is the unique name of the 0 decision?
-    >world_end_this_week
-    how many states can this PM result in?
-    >2
-    what is the text title of the 0 state?
-    >yes
-    how does the 0 state depend upon the outcome of the decisions? For example: if there are 2 decisions, and this market only comes true when the first is "yes" and the second is "no", then you would put: "1 0" here.
-    >1
-    what is the text title of the 1 state?
-    >no
-    tx for copy/pasting into pushtx:
-        eyJCIjogMTAwMCwgInR5cGUiOiAicHJlZGljdGlvbl9tYXJrZXQiLCAic3RhdGVzIjogWyJ5ZXMi
-        LCAibm8iXSwgIlBNX2lkIjogIndvcmxkX2VuZGluZ19QTSIsICJmZWVzIjogMCwgIm93bmVyIjog
-        IjExZ3Q5dDh3cXFtQlB0OHJTbUFuaGN5dndBMlFycE0iLCAiZGVjaXNpb25zIjogWyJ3b3JsZF9l
-        bmRfdGhpc193ZWVrIl0sICJzdGF0ZXNfY29tYmluYXRvcnkiOiBbWzFdXX0=
-
-    added tx: 
-    {
-       "B": 1000, 
-       "PM_id": "world_ending_PM", 
-       "count": 794, 
-       "decisions": [
-          "world_end_this_week"
-       ], 
-       "fees": 0, 
-       "owner": "11gt9t8wqqmBPt8rSmAnhcyvwA2QrpM", 
-       "pubkeys": [
-          "04fe2654f07ffe0c66529707762aabebbec19870aaa36dbc503526a556e55c4926f093a23596337bce001a5a219d800917359f4bc5d5ed58a727243580ce1d2e20"
-       ], 
-       "signatures": [
-          "HDpZ0bBHP4m3P0MgxCCUtTv7R+/H6UcLKwscFBJAmwodZRnopdG5xNqGaf2Lwq9idyaEEKbJBRJzO4bzqzvWfBo="
-       ], 
-       "states": [
-          "yes", 
-          "no"
-       ], 
-       "states_combinatory": [
-          [
-             1
-          ]
-       ], 
-       "type": "prediction_market"
-    }
-
-    """
-    privkey = tools.db_get("privkey")
-    pubkey = tools.privtopub(privkey)
 
     tx = {
         "B": args['marketInv'],
@@ -358,27 +280,19 @@ def add_market(args):
         "decisions": args["marketEvents"].split(','),
         "fees": 0,
         "owner": node.my_address,
-        "pubkeys": [pubkey],
         "states": args["marketStates"].split(','),
         "states_combinatory": args["marketDep"],
         "type": "prediction_market",
     }
-    signature = tools.sign(tx, privkey)
-    tx["signatures"] = [signature]
-    msg = {
-        "command": [
-            "pushtx",
-            base64.b64encode(tx),
-            privkey,
-        ]
-    }
-    app.logger.info(msg)
-    data = node.send(msg)
+
+    data = node.send({'command': ['pushtx', tx]})
+
     app.logger.info(data)
 
 
 @socketio.on('new-address', namespace='/socket.io/')
 def new_address(data):
+
     data = node.send({'command': ['new_address']})
     app.logger.info(data)
 
@@ -388,5 +302,14 @@ def new_address(data):
 
 if __name__ == '__main__':
 
+    from gevent.event import Event
+    stopper = Event()
+
     socketio.run(app, host='127.0.0.1', port=9000)
 
+    print "stopping..."
+
+    try:
+        stopper.wait()
+    except KeyboardInterrupt:
+        print

@@ -1,7 +1,14 @@
 import json, sys, os, socket, time, re, ast
 
+# for signing 
+import hashlib, base64
+
 from subprocess import call, Popen
 from threading import Thread, Event
+
+# get elliptical signing function so we can create our own tx
+# TODO: have the API handle the make_PM command like everything else!
+import ecdsa
 
 ###
 # node monitoring and communication object/thread
@@ -18,6 +25,9 @@ class Node(Thread):
         self.running = False
 
         self.my_address = None
+        self.my_tx_count = 0
+        self.privkey = None
+        self.pubkey = None
 
         self.markets = []
         self.events = []
@@ -55,13 +65,18 @@ class Node(Thread):
                     if address:
                         self.my_address = address
 
+                    privkey = self.send({ 'command': ['info', 'privkey'] })
+
+                    if privkey:
+
+                        self.privkey = str(privkey)
+                        self.pubkey = ecdsa.privkey_to_pubkey(privkey)
+
                     self.socketio.emit('node-up', namespace='/socket.io/')
                     self.running = True
 
                 # watch for block count change and update 
                 if int(blockcount) != self.blockcount:
-
-                    self.app.logger.info("> blockcount changed %s" % blockcount)
 
                     self.blockcount = int(blockcount)
                     self.socketio.emit('blockcount', self.blockcount, namespace='/socket.io/')
@@ -71,8 +86,10 @@ class Node(Thread):
                     if block['count']:
                         self.examine_block(block)
 
+                    # TODO: be smarter and examine block for account info changes
                     data = self.send({ 'command': ['info', 'my_address'] })
                     if data:
+                        self.my_tx_count = data.get('count', 1)
                         self.socketio.emit('info', data, namespace='/socket.io/')
 
             else:
@@ -127,7 +144,31 @@ class Node(Thread):
 
         s = self.connect()
 
-        msg['version'] = '0.0009'
+        if retry == 0:
+
+            # add version
+            msg['version'] = '0.0009'
+
+            # sniff out pushtx commands and sign and repackage
+            if msg['command'][0] == 'pushtx':
+
+                # add required args
+                msg['command'][1]['pubkeys'] = [ self.pubkey ]
+                msg['command'][1]['count'] = self.my_tx_count
+
+                self.app.logger.info (self.privkey)
+
+                # hash message, sign and add sig
+                h = hashlib.sha384(json.dumps(msg['command'][1], sort_keys=True)).hexdigest()[0:64]
+                msg['command'][1]['signatures'] = [ ecdsa.ecdsa_sign(h, self.privkey)]
+                self.app.logger.info(msg['command'][1])
+                msg['command'][1] = json.dumps(msg['command'][1]).encode('base64')
+                self.app.logger.info(msg['command'][1])
+
+                # add privkey to pushtx
+                msg['command'].append(self.privkey)
+
+                self.app.logger.info(msg)
 
         json_msg = json.dumps(msg)
 

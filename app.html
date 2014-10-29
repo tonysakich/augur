@@ -181,7 +181,7 @@ nav .credits {
                     </tbody>
                 </table>
 
-                <br><br><br>
+                <br><br>
 
                 <h4 class="clearfix">Markets <a href="#add-market-modal" data-toggle="modal" class="pull-right">Add a market</a></h4>
                 <table class="table table-striped">
@@ -217,7 +217,7 @@ nav .credits {
                     <form>
                         <div class="col-lg-12">
                             <div class="input-group">
-                                <input type="password" name="password" class="form-control" placeholder="Enter your password or public key">
+                                <input type="password" name="password" class="form-control" placeholder="Enter your password or public key" autofocus>
                                 <span class="input-group-btn">
                                     <button class="btn btn-success" type="submit">Start</button>
                                 </span>
@@ -261,12 +261,36 @@ nav .credits {
                     <form class="form-inline" role="form">
                         <div class="form-group">
                             <label class="sr-only" for="dest-address">Destination address</label>
-                            <input type="text" class="form-control" name="dest-address" id="dest-address" placeholder="Enter destination address">
+                            <input type="text" class="form-control" name="credit-dest-address" id="credit-dest-address" placeholder="Enter destination address">
                         </div>
                         <div class="form-group">
                             <label class="sr-only" for="amount">Amount</label>
-                            <input type="text" name="amount" id="amount" class="form-control" placeholder="Amount">
+                            <input type="text" name="credit-amount" id="credit-amount" class="form-control" placeholder="Amount">
                         </div>
+                        <button type="submit" class="btn btn-primary">Send</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="send-rep-modal" class="modal fade">
+        <div class="modal-dialog model-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4>Send <span class="jury"></span> reputation</h4>
+                </div>
+                <div class="modal-body">
+                    <form class="form-inline" role="form">
+                        <div class="form-group">
+                            <label class="sr-only" for="dest-address">Destination address</label>
+                            <input type="text" class="form-control" name="rep-dest-address" id="rep-dest-address" placeholder="Enter destination address">
+                        </div>
+                        <div class="form-group">
+                            <label class="sr-only" for="amount">Amount</label>
+                            <input type="text" name="rep-amount" id="rep-amount" class="form-control" placeholder="Amount">
+                        </div>
+                        <input type="hidden" name="rep-jury" id="rep-jury">
                         <button type="submit" class="btn btn-primary">Send</button>
                     </form>
                 </div>
@@ -387,7 +411,13 @@ nav .credits {
             if (data.votecoin) {
                 if (Object.keys(data.votecoin).length) {
                     $.each(data.votecoin, function(jury, rep) {
-                        var p = $('<\p>').html('<span class="pull-left">'+jury+'</span><span class="pull-right">'+rep+'</span>');
+                        var p = $('<\p>').html('<span class="pull-left">'+jury+' ('+rep+')</span>');
+                        var send = $('<\a>').attr('href','#').addClass('pull-right').text('send').on('click', function() {
+                            $('#rep-jury').val(jury);
+                            $('#send-rep-modal .jury').text(jury);
+                            $('#send-rep-modal').modal('show');
+                        })
+                        p.append(send);
                         $('.juries').empty().append(p);
                     });
                 } else {
@@ -549,10 +579,21 @@ nav .credits {
     $('#send-credits-modal form').on('submit', function(event) {
 
         event.preventDefault();
-        var address = $('#send-credits-modal input[name=dest-address]').val();
-        var amount = $('#send-credits-modal input[name=amount]').val();
+        var address = $('#credit-dest-address').val();
+        var amount = $('#credit-amount').val();
         socket.emit('send-credits', address, amount);
         $('#send-credits-modal').modal('hide');
+    });
+
+    $('#send-rep-modal form').on('submit', function(event) {
+
+        event.preventDefault();
+        var address = $('#rep-dest-address').val();
+        var amount = $('#rep-amount').val();
+        var jury = $('#rep-jury').val();
+        
+        socket.emit('send-reps', address, amount, jury);
+        $('#send-rep-modal').modal('hide');
     });
 
     $('#explore-modal form').on('submit', function(event) {
