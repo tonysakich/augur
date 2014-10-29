@@ -51,7 +51,7 @@ class Node(Thread):
                     self.socketio.emit('markets', self.markets[:10], namespace='/socket.io/')
                     self.socketio.emit('juries', self.juries[:10], namespace='/socket.io/')
 
-                    address = node.send({ 'command': ['my_address'] })
+                    address = self.send({ 'command': ['my_address'] })
                     if address:
                         self.my_address = address
 
