@@ -4,7 +4,7 @@ from __future__ import division
 from gevent import monkey
 monkey.patch_all()
 
-import json, datetime, sys, os, socket, time, re, pprint
+import json, datetime, sys, os, socket, time, re, pprint, ast
 
 from flask import Flask, session, request, escape, url_for, redirect, render_template, g, abort
 from flask.ext.socketio import SocketIO, emit, send
@@ -48,11 +48,8 @@ def dash():
 
 @socketio.on('info', namespace='/socket.io/')
 def info(arg):
-
     data = node.send({ 'command': ['info', 'my_address'] })
-
     if data:
-
         emit('info', data)
 
 
@@ -99,20 +96,20 @@ def get_block(block_number):
 
 @socketio.on('peers', namespace='/socket.io/')
 def peers():
-
-    data = node.send({ 'command': ['peers'] })
-
+    data = node.send({'command': ['peers']})
     if data:
-
+        data = ast.literal_eval(data)
         peers = []
-
-        for peer in data:
-            peers.append("%s:%s" % (peer[0][0], peer[0][1]))
-
-        peers = list(set(peers))
-
-        emit('peers', peers)
-
+        try:
+            for peer in data:
+                peers.append("%s:%s" % (peer[0][0], peer[0][1]))
+            if peers:
+                peers = list(set(peers))
+                print peers
+                emit('peers', peers)
+        except Exception as exc:
+            print(exc)
+            import pdb; pdb.set_trace()
 
 @socketio.on('events', namespace='/socket.io/')
 def events():

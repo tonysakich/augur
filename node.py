@@ -1,4 +1,4 @@
-import json, sys, os, socket, time, re
+import json, sys, os, socket, time, re, ast
 
 from subprocess import call, Popen
 from threading import Thread, Event
@@ -68,18 +68,17 @@ class Node(Thread):
 
                     # fetch and examine block txs
                     block = self.send({ 'command': ['info', 'blockcount'] })
-                    self.examine_block(block)
+                    if block['count']:
+                        self.examine_block(block)
 
                     data = self.send({ 'command': ['info', 'my_address'] })
                     if data:
-
                         self.socketio.emit('info', data, namespace='/socket.io/')
 
             else:
 
                 # check if node just went down
                 if self.running:
-
                     self.socketio.emit('node-down', namespace='/socket.io/')
                     self.running = False
 
@@ -128,7 +127,7 @@ class Node(Thread):
 
         json_msg = json.dumps(msg)
 
-        #self.app.logger.debug('sending: '+json_msg)
+        # self.app.logger.debug('sending: '+json_msg)
 
         padded_json = str(len(json_msg)).rjust(5, '0') + json_msg
 
@@ -198,29 +197,22 @@ class Node(Thread):
 
             data += d
 
-        data = data.replace('"', '')   # remove outside double quotes
-
-        try:                           # attempt to eval into python object
-            data = eval(data)
-        except:
-            pass
+        try:
+            data = ast.literal_eval(str(data))
+        except Exception as exc:
+            self.app.logger.debug(exc)
 
         return data
 
     def examine_block(self, block):
-        try:
-            if block.get('txs'):
-                for tx in block['txs']:
-                    if tx['type'] == 'propose_decision':
-                        self.events.append(tx)
-                    if tx['type'] == 'prediction_market':
-                        self.markets.append(tx)
-                    if tx['type'] == 'create_jury':
-                        self.juries.append(tx)
-        except Exception as exc:
-            self.app.logger.error('error parsing block: \n' + str(exc))
-            print(block)
-            import pdb; pdb.set_trace()
+        if block.get('txs'):
+            for tx in block['txs']:
+                if tx['type'] == 'propose_decision':
+                    self.events.append(tx)
+                if tx['type'] == 'prediction_market':
+                    self.markets.append(tx)
+                if tx['type'] == 'create_jury':
+                    self.juries.append(tx)
 
     def parse_block_chain(self):
         self.markets = []
@@ -228,14 +220,8 @@ class Node(Thread):
         self.juries = []
         for n in xrange(int(self.send({'command':['blockcount']}))):
             j = self.send({'command':['info', n]})
-            # print(j)
-            try:
-                # block = eval(str(j))
-                # block = json.loads(j)
-                block = j
-                block.replace(r"\\", r'\"')
-            except Exception as exc:
-                self.app.logger.error('error parsing block ' + str(n) + '\n' + str(exc))
-                import pdb; pdb.set_trace()
-                continue
-            self.examine_block(block)
+            block = ast.literal_eval(str(j))
+            if type(block) == str:
+                print("Could not parse block: " + str(n))
+            else:
+                self.examine_block(block)
