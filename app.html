@@ -187,7 +187,7 @@ nav .credits {
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>Description<th><th>ID</th><th>Volume</th><th>States</th>
+                            <th>ID<th><th>Count</th><th>Decisions</th><th>Fees</th>
                         <tr>
                     </thead>
                     <tbody class="markets">
@@ -381,22 +381,18 @@ nav .credits {
     // socket events
 
     socket.on('info', function (data) {
-
         if (data) {
-
             $('.credits').html('<span class="pull-left">'+data.amount+' CREDITS</span><a class="pull-right" href="#send-credits-modal" data-toggle="modal">send</a>');
-
-            if (Object.keys(data.votecoin).length) {
-
-                $.each(data.votecoin, function(jury, rep) {
-                    var p = $('<\p>').html('<span class="pull-left">'+jury+'</span><span class="pull-right">'+rep+'</span>');
+            if (data.votecoin) {
+                if (Object.keys(data.votecoin).length) {
+                    $.each(data.votecoin, function(jury, rep) {
+                        var p = $('<\p>').html('<span class="pull-left">'+jury+'</span><span class="pull-right">'+rep+'</span>');
+                        $('.juries').empty().append(p);
+                    });
+                } else {
+                    var p = $('<\p>').html('<span class="pull-left">You are not a member of any juries</span>');
                     $('.juries').empty().append(p);
-                });
-
-            } else {
-
-                var p = $('<\p>').html('<span class="pull-left">You are not a member of any juries</span>');
-                $('.juries').empty().append(p);
+                }
             }
         }
     });
@@ -439,13 +435,9 @@ nav .credits {
     });
 
     socket.on('peers', function (peers) {
-
         if (peers.length) {
-
             $('.peers').empty();
-
             $.each(peers, function(i, peer) {
-
                 var p = $('<\p>').text(peer);
                 $('.peers').append(p);
             });
@@ -453,40 +445,26 @@ nav .credits {
     });
 
     socket.on('events', function (events) {
-
         if (events.length) {
-
             $('.events').empty();
-
             $.each(events, function(i, e) {
-
-                $('.events').append('<tr><td>'+e.txt+'</td><td>'+e.decision_id+'</td><td>'+e.vote_id+'</td><td>undefined</td></tr>');
+                $('.events').append('<tr><td>'+e.txt+'</td><td>'+e.decision_id+'</td><td>'+e.vote_id+'</td><td>--</td></tr>');
             });
         }
     });
 
     socket.on('markets', function (markets) {
-
-        console.log("hi there");
-        console.log(markets);
-
         if (markets.length) {
-
             $('.markets').empty();
-
             $.each(markets, function(i, m) {
-
-                console.log(m);
+                $('.markets').append('<tr><td>'+e.PM_id+'</td><td>'+e.count+'</td><td>'+JSON.stringify(e.decisions)+'</td><td>'+e.fees+'</tr>');
             });
         }
     });
 
     socket.on('juries', function (juries) {
-
         if (juries.length) {
-
             $('.juries').empty();
-
             $.each(juries, function(i, jury) {
 
             });
