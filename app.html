@@ -187,7 +187,7 @@ nav .credits {
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>ID<th><th>Count</th><th>Decisions</th><th>Fees</th>
+                            <th>ID</th><th>Count</th><th>Decisions</th><th>Fees</th>
                         <tr>
                     </thead>
                     <tbody class="markets">
@@ -457,14 +457,7 @@ nav .credits {
         if (markets.length) {
             $('.markets').empty();
             $.each(markets, function(i, e) {
-                $('.markets').append('
-                    <tr>
-                        <td>'+e.PM_id+'</td>
-                        <td>'+e.count+'</td>
-                        <td>'+JSON.stringify(e.decisions)+'</td>
-                        <td>'+e.fees+'</td>
-                    </tr>'
-                );
+                $('.markets').append('<tr><td>'+e.PM_id+'</td><td>'+e.count+'</td><td>'+JSON.stringify(e.decisions)+'</td><td>'+e.fees+'</td></tr>');
             });
         }
     });
