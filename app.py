@@ -242,13 +242,13 @@ def make_pm(args):
     privkey = tools.db_get("privkey")
     pubkey = tools.privtopub(privkey)
     tx = {
-        "B": args["B"],
-        "PM_id": args["PM_id"],
-        "decisions": args["decisions"],
+        "B": int(args["B"]),
+        "PM_id": str(args["PM_id"]),
+        "decisions": args["decisions"], # list of decision IDs
         "fees": 0,
-        "owner": args["owner"], # tools.make_address([pubkey], 1)
+        "owner": str(args["owner"]), # tools.make_address([pubkey], 1)
         "pubkeys": [pubkey],
-        "states": args["states"],
+        "states": args["states"], # list of states
         "states_combinatory": args["states_combinatory"],
         "type": "prediction_market",
     }
