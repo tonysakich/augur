@@ -34,6 +34,9 @@ h1, h2, h3, h4, h5 {
 h4 a {
     font-size: 14px;
 }
+table {
+    font-size: 12px;
+}
 table thead th{
     font-weight: 400;
 }
@@ -410,6 +413,7 @@ nav .credits {
             $('.credits').html('<span class="pull-left">'+data.amount+' CREDITS</span><a class="pull-right" href="#send-credits-modal" data-toggle="modal">send</a>');
             if (data.votecoin) {
                 if (Object.keys(data.votecoin).length) {
+                    $('.juries').empty()
                     $.each(data.votecoin, function(jury, rep) {
                         var p = $('<\p>').html('<span class="pull-left">'+jury+' ('+rep+')</span>');
                         var send = $('<\a>').attr('href','#').addClass('pull-right').text('send').on('click', function() {
@@ -418,7 +422,7 @@ nav .credits {
                             $('#send-rep-modal').modal('show');
                         })
                         p.append(send);
-                        $('.juries').empty().append(p);
+                        $('.juries').append(p);
                     });
                 } else {
                     var p = $('<\p>').html('<span class="pull-left">You are not a member of any juries</span>');
