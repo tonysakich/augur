@@ -415,7 +415,7 @@ nav .credits {
                 if (Object.keys(data.votecoin).length) {
                     $('.juries').empty()
                     $.each(data.votecoin, function(jury, rep) {
-                        var p = $('<\p>').html('<span class="pull-left">'+jury+' ('+rep+')</span>');
+                        var p = $('<\p>').html('<span class="pull-left">'+jury+' ('+rep+')</span>').addClass('clearfix');
                         var send = $('<\a>').attr('href','#').addClass('pull-right').text('send').on('click', function() {
                             $('#rep-jury').val(jury);
                             $('#send-rep-modal .jury').text(jury);
