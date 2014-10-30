@@ -48,7 +48,7 @@ nav h1 {
 nav h1 span {
     font-weight: 400;
 }
-nav .credits {
+nav .cash {
     margin-left: 20px;
     font-weight: bold;
 }
@@ -65,7 +65,7 @@ nav .credits {
 #password-modal .modal-dialog {
     width: 400px;
 }
-#create-jury-modal .modal-dialog {
+#create-branch-modal .modal-dialog {
     width: 400px;
 }
 #explore-modal .modal-dialog {
@@ -77,7 +77,7 @@ nav .credits {
 #explore-modal .input-group {
     width: 250px;
 }
-#send-credits-modal #dest-address {
+#send-cash-modal #dest-address {
     width: 290px;
 }
 .address {
@@ -145,13 +145,13 @@ nav .credits {
                     <div class="panel-heading clearfix">Account</div>
                     <div class="panel-body">
                         <p class="address"></p>
-                        <p class="credits"></p>       
+                        <p class="cash"></p>       
                     </div>
                 </div>
 
                 <div class="panel panel-info">
-                    <div class="panel-heading clearfix"><span class="pull-left">Juries</span><a class="pull-right" href="#create-jury-modal" data-toggle="modal">create</a></div>
-                    <div class="panel-body juries">
+                    <div class="panel-heading clearfix"><span class="pull-left">Branches</span><a class="pull-right" href="#create-branch-modal" data-toggle="modal">create</a></div>
+                    <div class="panel-body branches">
                     </div>
                 </div>
 
@@ -171,26 +171,26 @@ nav .credits {
             </div>
           
             <div class="col-sm-9">
-                <h4 class="clearfix">Events 
-                    <a href="#add-event-modal" data-toggle="modal" class="pull-right">Add an event</a>
+                <h4 class="clearfix">Decisions 
+                    <a href="#add-decision-modal" data-toggle="modal" class="pull-right">Add decision</a>
                 </h4>
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>Description</th><th>ID</th><th>Jury</th><th>Duration</th>
+                            <th>Description</th><th>ID</th><th>Branch</th><th>Duration</th>
                         <tr>
                     </thead>
-                    <tbody class="events">
+                    <tbody class="decisions">
                     </tbody>
                 </table>
 
-                <br><br>
+                <br>
 
                 <h4 class="clearfix">Markets <a href="#add-market-modal" data-toggle="modal" class="pull-right">Add a market</a></h4>
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>ID</th><th>Count</th><th>Decisions</th><th>Fees</th>
+                            <th>ID</th><th>Decisions</th><th>Fees</th><th></th>
                         <tr>
                     </thead>
                     <tbody class="markets">
@@ -232,19 +232,19 @@ nav .credits {
         </div>
     </div>
 
-    <div id="create-jury-modal" class="modal fade">
+    <div id="create-branch-modal" class="modal fade">
         <div class="modal-dialog model-sm">
             <div class="modal-content">
                 <div class="modal-header">
-                    <p>Create a new jury by entering a unique ID.  You will automatically be added to this jury and awarded all reputation to start.</p>
+                    <p>Create a new branch by entering a unique ID.  You will automatically be added to this branch and awarded all reputation to start.</p>
                 </div>
                 <div class="modal-body clearfix">
                     <form>
                         <div class="col-lg-12">
                             <div class="input-group">
-                                <input type="text" name="jury-id" class="form-control" placeholder="Enter a new jury ID">
+                                <input type="text" name="branch-id" class="form-control" placeholder="Enter a branch branch ID">
                                 <span class="input-group-btn">
-                                    <button class="btn btn-primary" type="submit">Create</button>
+                                    <button class="btn btn-primary" type="submit">Create branch</button>
                                 </span>
                             </div>
                         </div>
@@ -254,21 +254,21 @@ nav .credits {
         </div>
     </div>
 
-    <div id="send-credits-modal" class="modal fade">
+    <div id="send-cash-modal" class="modal fade">
         <div class="modal-dialog model-sm">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4>Send credits</h4>
+                    <h4>Send cash</h4>
                 </div>
                 <div class="modal-body">
                     <form class="form-inline" role="form">
                         <div class="form-group">
                             <label class="sr-only" for="dest-address">Destination address</label>
-                            <input type="text" class="form-control" name="credit-dest-address" id="credit-dest-address" placeholder="Enter destination address">
+                            <input type="text" class="form-control" name="cash-dest-address" id="cash-dest-address" placeholder="Enter destination address">
                         </div>
                         <div class="form-group">
                             <label class="sr-only" for="amount">Amount</label>
-                            <input type="text" name="credit-amount" id="credit-amount" class="form-control" placeholder="Amount">
+                            <input type="text" name="cash-amount" id="cash-amount" class="form-control" placeholder="Amount">
                         </div>
                         <button type="submit" class="btn btn-primary">Send</button>
                     </form>
@@ -281,7 +281,7 @@ nav .credits {
         <div class="modal-dialog model-sm">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4>Send <span class="jury"></span> reputation</h4>
+                    <h4>Send <span class="branch"></span> reputation</h4>
                 </div>
                 <div class="modal-body">
                     <form class="form-inline" role="form">
@@ -293,7 +293,7 @@ nav .credits {
                             <label class="sr-only" for="amount">Amount</label>
                             <input type="text" name="rep-amount" id="rep-amount" class="form-control" placeholder="Amount">
                         </div>
-                        <input type="hidden" name="rep-jury" id="rep-jury">
+                        <input type="hidden" name="rep-branch" id="rep-branch">
                         <button type="submit" class="btn btn-primary">Send</button>
                     </form>
                 </div>
@@ -301,31 +301,56 @@ nav .credits {
         </div>
     </div>
 
-    <div id="add-event-modal" class="modal fade">
+    <div id="trade-modal" class="modal fade">
         <div class="modal-dialog model-sm">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4>Add an event</h4>
+                    <h4><span class="trade-type"></span> shares of <span class="market"></span></h4>
+                </div>
+                <div class="modal-body">
+                    <form class="form-inline" role="form">
+                        <div class="form-group">
+                            <label class="sr-only" for="market-state">State</label>
+                            <input type="text" class="form-control" name="market-state" id="market-state", placeholder="State">
+                        </div>
+                        <div class="form-group">
+                            <label class="sr-only" for="amount">Amount</label>
+                            <input type="text" name="trade-amount" id="trade-amount" class="form-control" placeholder="Amount">
+                        </div>
+                        <input type="hidden" name="trade-type" id="trade-type">
+                        <input type="hidden" name="trade-market" id="trade-market">
+                        <button type="submit" class="btn btn-primary"><span class="trade-type"></span></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="add-decision-modal" class="modal fade">
+        <div class="modal-dialog model-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4>Add decision</h4>
                 </div>
                 <div class="modal-body clearfix">
                     <form role="form">
                         <div class="form-group">
-                            <label for="event-jury">Jury ID</label>
-                            <input type="text" class="form-control" id="event-jury" placeholder="Enter jury ID">
+                            <label for="decision-branch">Branch ID</label>
+                            <input type="text" class="form-control" id="decision-branch" placeholder="Enter branch ID">
                         </div>
                         <div class="form-group">
-                            <label for="event-id">Event ID</label>
-                            <input type="text" class="form-control" id="event-id" placeholder="Enter a unique event ID">
+                            <label for="decision-id">Decision ID</label>
+                            <input type="text" class="form-control" id="decision-id" placeholder="Enter a unique decision ID">
                         </div>
                         <div class="form-group">
-                            <label for="event-text">Event text</label>
-                            <input type="text" class="form-control" id="event-text" placeholder="Enter a short event description or question">
+                            <label for="decision-text">Decision text</label>
+                            <input type="text" class="form-control" id="decision-text" placeholder="Enter a short decision description">
                         </div>
                         <div class="form-group">
-                            <label for="event-date">Event mature date <i>(not currently supported)</i></label>
-                            <input type="text" class="form-control" id="event-date" placeholder="Enter the date the event matures">
+                            <label for="decision-date">Decision mature date <i>(not currently supported)</i></label>
+                            <input type="text" class="form-control" id="decision-date" placeholder="Enter the date the decision matures">
                         </div>
-                        <button type="submit" class="btn btn-primary pull-right">Submit event</button>
+                        <button type="submit" class="btn btn-primary pull-right">Submit decision</button>
                     </form>
                 </div>
             </div>
@@ -346,21 +371,21 @@ nav .credits {
                         </div>
                         <div class="form-group">
                             <label for="market-investment">Initial Investment (B)</label>
-                            <input type="text" class="form-control" id="market-investment" placeholder="Enter you initial investment in credits">
+                            <input type="text" class="form-control" id="market-investment" placeholder="Enter you initial investment in cash">
                         </div>
                         <div class="form-group">
-                            <label for="market-events">Market Events</label>
-                            <input type="text" class="form-control" id="market-events" placeholder="Enter a comma seperate list of event IDs">
+                            <label for="market-decisions">Market Decisions</label>
+                            <input type="text" class="form-control" id="market-decisions" placeholder="Enter a comma seperated list of decision IDs">
                         </div>
                         <div class="form-group">
                             <label for="market-states">Market States</label>
-                            <input type="text" class="form-control" id="market-states" placeholder="Enter a comma seperate list of states">
+                            <input type="text" class="form-control" id="market-states" placeholder="Enter a comma seperated list of states">
                         </div>
                         <div class="form-group">
                             <label for="market-dep">State Dependency</label>
-                            <input type="text" class="form-control" id="market-dep" placeholder="Maybe 1?  Maybe -4? Fuck if I know!">
+                            <input type="text" class="form-control" id="market-dep" placeholder="">
                         </div>
-                        <button type="submit" class="btn btn-primary pull-right">Submit event</button>
+                        <button type="submit" class="btn btn-primary pull-right">Submit decision</button>
                     </form>
                 </div>
             </div>
@@ -410,23 +435,23 @@ nav .credits {
     socket.on('info', function (data) {
 
         if (data) {
-            $('.credits').html('<span class="pull-left">'+data.amount+' CREDITS</span><a class="pull-right" href="#send-credits-modal" data-toggle="modal">send</a>');
+            $('.cash').html('<span class="pull-left">'+data.amount+' CASH</span><a class="pull-right" href="#send-cash-modal" data-toggle="modal">send</a>');
             if (data.votecoin) {
                 if (Object.keys(data.votecoin).length) {
-                    $('.juries').empty()
-                    $.each(data.votecoin, function(jury, rep) {
-                        var p = $('<\p>').html('<span class="pull-left">'+jury+' ('+rep+')</span>').addClass('clearfix');
-                        var send = $('<\a>').attr('href','#').addClass('pull-right').text('send').on('click', function() {
-                            $('#rep-jury').val(jury);
-                            $('#send-rep-modal .jury').text(jury);
+                    $('.branches').empty()
+                    $.each(data.votecoin, function(branch, rep) {
+                        var p = $('<p>').html('<span class="pull-left">'+branch+' ('+rep+')</span>').addClass('clearfix');
+                        var send = $('<a>').attr('href','#').addClass('pull-right').text('send').on('click', function() {
+                            $('#rep-branch').val(branch);
+                            $('#send-rep-modal .branch').text(branch);
                             $('#send-rep-modal').modal('show');
                         })
                         p.append(send);
-                        $('.juries').append(p);
+                        $('.branches').append(p);
                     });
                 } else {
-                    var p = $('<\p>').html('<span class="pull-left">You are not a member of any juries</span>');
-                    $('.juries').empty().append(p);
+                    var p = $('<p>').html('<span class="pull-left">You are not a member of any branch</span>');
+                    $('.branches').empty().append(p);
                 }
             }
         }
@@ -473,17 +498,17 @@ nav .credits {
         if (peers.length) {
             $('.peers').empty();
             $.each(peers, function(i, peer) {
-                var p = $('<\p>').text(peer);
+                var p = $('<p>').text(peer);
                 $('.peers').append(p);
             });
         }
     });
 
-    socket.on('events', function (events) {
-        if (events.length) {
-            $('.events').empty();
-            $.each(events, function(i, e) {
-                $('.events').append('<tr><td>'+e.txt+'</td><td>'+e.decision_id+'</td><td>'+e.vote_id+'</td><td>--</td></tr>');
+    socket.on('decisions', function (decisions) {
+        if (decisions.length) {
+            $('.decisions').empty();
+            $.each(decisions, function(i, d) {
+                $('.decisions').append('<tr><td>'+d.txt+'</td><td>'+d.decision_id+'</td><td>'+d.vote_id+'</td><td>--</td></tr>');
             });
         }
     });
@@ -491,20 +516,29 @@ nav .credits {
     socket.on('markets', function (markets) {
         if (markets.length) {
             $('.markets').empty();
-            $.each(markets, function(i, e) {
-                $('.markets').append('<tr><td>'+e.PM_id+'</td><td>'+e.count+'</td><td>'+JSON.stringify(e.decisions)+'</td><td>'+e.fees+'</td></tr>');
+            $.each(markets, function(i, m) {
+                var row = $('<tr>').html('<td>'+m.PM_id+'</td><td>'+m.decisions.join(', ')+'</td><td>'+m.fees+'</td>');
+                var buy = $('<a>').attr('href', '#').text('buy').on('click', function() {
+                    $('#trade-modal .trade-type').text('buy');
+                    $('#trade-modal .market').text(m.PM_id);
+                    $('#trade-market').val(m.PM_id);
+                    $('#trade-type').val('buy');
+                    $('#trade-modal').modal('show');
+                });
+                var sell = $('<a>').attr('href', '#').text('sell').on('click', function() {
+                    $('#trade-modal .trade-type').text('sell');
+                    $('#trade-modal .market').text(m.PM_id);
+                    $('#trade-market').val(m.PM_id);
+                    $('#trade-type').val('sell');
+                    $('#trade-modal').modal('show');
+                });
+                var buySell = $('<td>').append(buy).append(' / ').append(sell).css('text-align', 'right');
+                $(row).append(buySell);
+                $('.markets').append(row);
             });
         }
     });
 
-    socket.on('juries', function (juries) {
-        if (juries.length) {
-            $('.juries').empty();
-            $.each(juries, function(i, jury) {
-
-            });
-        }
-    });
     socket.on('miner', function (status) {
 
         if (status == 'on') {
@@ -527,7 +561,7 @@ nav .credits {
 
         if ($('.miner-off').is(':visible')) {
 
-            socket.emit('miner', 'start');
+            socket.emit('miner', 'start');s
             
         } else if ($('.miner-on').is(':visible')) {
 
@@ -542,27 +576,27 @@ nav .credits {
         $('.node-stopped').hide();
         $('.node-starting').show();
         $('#password-modal').modal('hide');
-    });
+    }); 
 
-    $('#create-jury-modal form').on('submit', function(event) {
+    $('#create-branch-modal form').on('submit', function(event) {
 
         event.preventDefault();
-        socket.emit('create-jury', $('#create-jury-modal input[name=jury-id]').val());
-        $('#create-jury-modal').modal('hide');
+        socket.emit('create-branch', $('#branch-id').val());
+        $('#create-branch-modal').modal('hide');
     });
 
 
-    $('#add-event-modal form').on('submit', function(event) {
+    $('#add-decision-modal form').on('submit', function(event) {
 
         event.preventDefault();
 
         var args = {
-            'juryId': $('#event-jury').val(),
-            'eventId': $('#event-id').val(),
-            'eventText': $('#event-text').val()
+            'branchId': $('#decision-branch').val(),
+            'decisionId': $('#decision-id').val(),
+            'decisionText': $('#decision-text').val()
         }
-        socket.emit('add-event', args);
-        $('#add-event-modal').modal('hide');
+        socket.emit('add-decision', args);
+        $('#add-decision-modal').modal('hide');
     });
 
     $('#add-market-modal form').on('submit', function(event) {
@@ -572,7 +606,7 @@ nav .credits {
         var args = {
             'marketId': $('#market-id').val(),
             'marketInv': $('#market-investment').val(),
-            'marketEvents': $('#market-events').val(),
+            'marketDecisions': $('#market-decisions').val(),
             'marketStates': $('#market-states').val(),
             'marketDep': $('#market-dep').val()
         }
@@ -580,13 +614,23 @@ nav .credits {
         $('#add-market-modal').modal('hide');
     });
 
-    $('#send-credits-modal form').on('submit', function(event) {
+    $('#send-cash-modal form').on('submit', function(event) {
 
         event.preventDefault();
-        var address = $('#credit-dest-address').val();
-        var amount = $('#credit-amount').val();
-        socket.emit('send-credits', address, amount);
-        $('#send-credits-modal').modal('hide');
+        var address = $('#cash-dest-address').val();
+        var amount = $('#cash-amount').val();
+        socket.emit('send-cash', address, amount);
+        $('#send-cash-modal').modal('hide');
+    });
+
+    $('#trade-modal form').on('submit', function(event) {
+
+        event.preventDefault();
+        var market = $('#trade-market').val();
+        var state = $('#trade-state').val();
+        var amount = $('#trade-amount').val();
+        socket.emit('trade', address, amount);
+        $('#trade-modal').modal('hide');
     });
 
     $('#send-rep-modal form').on('submit', function(event) {
@@ -594,9 +638,9 @@ nav .credits {
         event.preventDefault();
         var address = $('#rep-dest-address').val();
         var amount = $('#rep-amount').val();
-        var jury = $('#rep-jury').val();
+        var branch = $('#rep-branch').val();
         
-        socket.emit('send-reps', address, amount, jury);
+        socket.emit('send-reps', address, amount, branch);
         $('#send-rep-modal').modal('hide');
     });
 
@@ -619,9 +663,9 @@ nav .credits {
 
     socket.emit('check-status');
 
-    socket.emit('events');
+    socket.emit('decisions');
     socket.emit('markets');
-    socket.emit('juries');
+    socket.emit('branches');
 
 })()
 </script>

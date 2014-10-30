@@ -30,8 +30,8 @@ class Node(Thread):
         self.pubkey = None
 
         self.markets = []
-        self.events = []
-        self.juries = []
+        self.decisions = []
+        self.branches = []
 
         Thread.__init__(self)
 
@@ -57,9 +57,9 @@ class Node(Thread):
                 if not self.running:
 
                     self.parse_block_chain()
-                    self.socketio.emit('events', self.events[:10], namespace='/socket.io/')
-                    self.socketio.emit('markets', self.markets[:10], namespace='/socket.io/')
-                    self.socketio.emit('juries', self.juries[:10], namespace='/socket.io/')
+                    self.socketio.emit('decisions', self.decisions[:20], namespace='/socket.io/')
+                    self.socketio.emit('markets', self.markets[:20], namespace='/socket.io/')
+                    self.socketio.emit('branches', self.branches[:20], namespace='/socket.io/')
 
                     address = self.send({ 'command': ['my_address'] })
                     if address:
@@ -260,7 +260,6 @@ class Node(Thread):
 
         return data
 
-
     def examine_block(self, block):
 
         if block.get('txs'):
@@ -268,20 +267,29 @@ class Node(Thread):
             for tx in block['txs']:
 
                 if tx['type'] == 'propose_decision':
-                    self.events.append(tx)
+                    self.decisions.append(tx)
                 if tx['type'] == 'prediction_market':
                     self.markets.append(tx)
                 if tx['type'] == 'create_jury':
-                    self.juries.append(tx)
-
+                    self.branches.append(tx)
 
     def parse_block_chain(self):
 
         self.markets = []
-        self.events = []
-        self.juries = []
+        self.decisions = []
+        self.branches = []
 
         for n in xrange(int(self.send({'command':['blockcount']}))):
 
             block = self.send({'command':['info', n]})
             self.examine_block(block)
+
+    def get_market(self, id=None):
+
+        if id:
+
+            for market in self.markets:
+
+                if market['PM_id'] == id:
+
+                    return market

@@ -12,7 +12,7 @@
 #### *nix
 - checkout Truthcoin-UI next to Truthcoin-POW (or change config path in app.py)
 - $ cd Truthcoin-UI
-- $ pip -r install requirements.txt
+- $ pip install -r requirements.txt
 - $ python app.py
 - http://localhost:9000
 

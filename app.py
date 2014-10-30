@@ -107,22 +107,22 @@ def peers():
             emit('peers', peers)
 
 
-@socketio.on('events', namespace='/socket.io/')
-def events():
+@socketio.on('decisions', namespace='/socket.io/')
+def decisions():
 
-    emit('events', node.events[:10])
+    emit('decisions', node.decisions[:20])
 
 
 @socketio.on('markets', namespace='/socket.io/')
 def markets():
 
-    emit('markets', node.markets[:10])
+    emit('markets', node.markets[:20])
 
 
-@socketio.on('juries', namespace='/socket.io/')
-def juries():
+@socketio.on('branches', namespace='/socket.io/')
+def branches():
 
-    emit('juries', node.juries[:10])
+    emit('branches', node.branches[:20])
 
 
 @socketio.on('start', namespace='/socket.io/')
@@ -156,118 +156,61 @@ def miner(arg):
             emit('miner', 'error')
 
 
-@socketio.on('send-credits', namespace='/socket.io/')
-def send_credits(address, amount):
+@socketio.on('send-cash', namespace='/socket.io/')
+def send_cash(address, amount):
 
     data = node.send({ 'command':['spend', amount, address] })
 
 
 @socketio.on('send-reps', namespace='/socket.io/')
-def send_credits(address, amount, jury):
+def send_credits(address, amount, branch):
 
-    data = node.send({ 'command':['votecoin_spend', amount, jury, address] })
+    data = node.send({ 'command':['votecoin_spend', amount, branch, address] })
 
 
-@socketio.on('create-jury', namespace='/socket.io/')
-def create_jury(name):
+@socketio.on('create-branch', namespace='/socket.io/')
+def create_branch(name):
 
     data = node.send({ 'command':['create_jury', name] })
 
 
-@socketio.on('add-event', namespace='/socket.io/')
-def add_event(args):
+@socketio.on('add-decision', namespace='/socket.io/')
+def add_decision(args):
 
-    data = node.send({ 'command':['ask_decision', args['juryId'], args['eventId'], '"'+args['eventText']+'"'] })
+    data = node.send({ 'command':['ask_decision', args['branchId'], args['decisionId'], '"'+args['decisionText']+'"'] })
 
     app.logger.info(data)
 
 
-@socketio.on('buy-shares', namespace='/socket.io/')
-def buy_shares(args):
-    """Example:
+@socketio.on('trade', namespace='/socket.io/')
+def trade(args):
 
-    ./truth_cli.py info world_ending_PM
-    {
-       "B": 1000, 
-       "author": "11gt9t8wqqmBPt8rSmAnhcyvwA2QrpM", 
-       "decisions": [
-          "world_end_this_week"
-       ], 
-       "fees": 0, 
-       "shares_purchased": [
-          0, 
-          0
-       ], 
-       "states": [
-          "yes", 
-          "no"
-       ], 
-       "states_combinatory": [
-          [
-             1
-          ]
-       ]
-    }
+    market = node.get_marget(id=args['marketId'])
 
-    $ ./truth_cli.py buy_shares
-    What is the unique name for this prediction market?
-    >world_ending_PM
-    how many states does this pm have?
-    >2
-    how many shares do you want to buy of state 0? To sell states, use negative numbers.
-    >10
-    how many shares do you want to buy of state 1? To sell states, use negative numbers.
-    >0
-    What is your brainwallet
-    >my_password
-    now for a little proof of work. This may take several minutes. The purpose of this pow is to make it more difficult for a front runner to steal your trade.
-    tx for copy/pasting into pushtx:
-        eyJjb3VudCI6IDc5OCwgIm5vbmNlIjogNDQ4MDk3OTgwNjI3MTk5NzUzNDg3MjkxNTE5NzUyNDU0
-        MTUwNzA2OSwgImJ1eSI6IFsxMCwgMF0sICJ0eXBlIjogImJ1eV9zaGFyZXMiLCAiUE1faWQiOiAi
-        d29ybGRfZW5kaW5nX1BNIiwgInNpZ25hdHVyZXMiOiBbIkhBUngrUzlLcjZ3cEtIbDJHdm9YYTFR
-        a3I2bS8vYWY1dUVaZ05OQ1BncHhZR1EzZlVpc0pab2RSSUFOaURvMFRWT0RTRkdYNkx2WSs3bWhn
-        eWlod3dMZz0iXSwgInB1YmtleXMiOiBbIjA0ZmUyNjU0ZjA3ZmZlMGM2NjUyOTcwNzc2MmFhYmVi
-        YmVjMTk4NzBhYWEzNmRiYzUwMzUyNmE1NTZlNTVjNDkyNmYwOTNhMjM1OTYzMzdiY2UwMDFhNWEy
-        MTlkODAwOTE3MzU5ZjRiYzVkNWVkNThhNzI3MjQzNTgwY2UxZDJlMjAiXSwgInByaWNlX2xpbWl0
-        IjogNX0=
+    if market:
 
-    added tx: 
-    {
-       "PM_id": "world_ending_PM", 
-       "buy": [
-          10, 
-          0
-       ], 
-       "count": 798, 
-       "nonce": 4480979806271997534872915197524541507069, 
-       "price_limit": 5, 
-       "pubkeys": [
-          "04fe2654f07ffe0c66529707762aabebbec19870aaa36dbc503526a556e55c4926f093a23596337bce001a5a219d800917359f4bc5d5ed58a727243580ce1d2e20"
-       ], 
-       "signatures": [
-          "HARx+S9Kr6wpKHl2GvoXa1Qkr6m//af5uEZgNNCPgpxYGQ3fUisJZodRIANiDo0TVODSFGX6LvY+7mhgyihwwLg="
-       ], 
-       "type": "buy_shares"
-    }
+        tx = {
+            'PM_id': args['marketId'],
+            'type': 'buy_shares',
+            'nonce': '',
+            'price_limit': 0,
+            'buy': []
+        }
 
-    """
-    privkey = tools.db_get("privkey")
-    pubkey = tools.privtopub(privkey)
-    tx = {
-        "fees": 0,
-        "pubkeys": [pubkey],
-    }
-    signature = tools.sign(tx, privkey)
-    tx["signatures"] = [signature]
-    msg = {
-        "command": [
-            "pushtx",
-            base64.b64encode(tx),
-            privkey,
-        ]
-    }
-    app.logger.info(msg)
-    data = node.send(msg)
+        if args['tradeType'] == 'sell':
+            amount = 0 - args['tradeAmount']
+        else:
+            amount = args['tradeAmount']
+
+        # find state index
+        for i, s in enumerate(market.states):
+            if s == args['marketState']:
+                tx['buy'].append(float(amount))
+            else:
+                tx['buy'].append(0)
+
+    app.logger.info(tx)
+    data = node.send({'command': ['pushtx', tx]})
     app.logger.info(data)
 
 
@@ -277,7 +220,7 @@ def add_market(args):
     tx = {
         "B": args['marketInv'],
         "PM_id": args['marketId'],
-        "decisions": args["marketEvents"].split(','),
+        "decisions": args["marketDecisions"].split(','),
         "fees": 0,
         "owner": node.my_address,
         "states": args["marketStates"].split(','),
