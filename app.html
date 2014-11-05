@@ -190,7 +190,7 @@ nav .cash {
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>ID</th><th>Decisions</th><th>Fees</th><th></th>
+                            <th>ID</th><th>Decisions</th><th>Fees</th><th>Shares</th><th></th>
                         <tr>
                     </thead>
                     <tbody class="markets">
@@ -311,7 +311,7 @@ nav .cash {
                     <form class="form-inline" role="form">
                         <div class="form-group">
                             <label class="sr-only" for="market-state">State</label>
-                            <input type="text" class="form-control" name="market-state" id="market-state", placeholder="State">
+                            <div id="market-state"></div>
                         </div>
                         <div class="form-group">
                             <label class="sr-only" for="amount">Amount</label>
@@ -427,7 +427,12 @@ nav .cash {
 <script>
 (function () {
 
+    ////
+    // local data
+
     var socket = io.connect(window.location.protocol + '//' + document.domain + ':' + location.port + '/socket.io/');
+    var _market = {}
+
 
     ////
     // socket events
@@ -486,6 +491,12 @@ nav .cash {
         socket.emit('blockcount');
     });
 
+    socket.on('node-starting', function () {
+
+        $('.node-stopped').hide();
+        $('.node-starting').show();
+    });
+
     socket.on('node-down', function () {
 
         $('#main').hide();
@@ -517,13 +528,24 @@ nav .cash {
         if (markets.length) {
             $('.markets').empty();
             $.each(markets, function(i, m) {
-                var row = $('<tr>').html('<td>'+m.PM_id+'</td><td>'+m.decisions.join(', ')+'</td><td>'+m.fees+'</td>');
+
+                console.log(m);
+
+                // load market hash
+                _market[m['PM_id']] = m
+
+                var states = $('<select>').addClass('states, form-control').attr('name', 'market-state');
+                _.each(m['states'], function(state) {
+                    states.append($('<option>').val(state).text(state));
+                });
+                var row = $('<tr>').html('<td>'+m.PM_id+'</td><td>'+m.decisions.join(', ')+'</td><td>'+m.fees+'</td><td>'+m['shares_purchased'].join('/')+'</td>');
                 var buy = $('<a>').attr('href', '#').text('buy').on('click', function() {
                     $('#trade-modal .trade-type').text('buy');
                     $('#trade-modal .market').text(m.PM_id);
                     $('#trade-market').val(m.PM_id);
                     $('#trade-type').val('buy');
                     $('#trade-modal').modal('show');
+                    $('#market-state').empty().append(states);
                 });
                 var sell = $('<a>').attr('href', '#').text('sell').on('click', function() {
                     $('#trade-modal .trade-type').text('sell');
@@ -531,6 +553,7 @@ nav .cash {
                     $('#trade-market').val(m.PM_id);
                     $('#trade-type').val('sell');
                     $('#trade-modal').modal('show');
+                    $('#market-state').empty().append(states);
                 });
                 var buySell = $('<td>').append(buy).append(' / ').append(sell).css('text-align', 'right');
                 $(row).append(buySell);
@@ -561,7 +584,7 @@ nav .cash {
 
         if ($('.miner-off').is(':visible')) {
 
-            socket.emit('miner', 'start');s
+            socket.emit('miner', 'start');
             
         } else if ($('.miner-on').is(':visible')) {
 
@@ -626,10 +649,13 @@ nav .cash {
     $('#trade-modal form').on('submit', function(event) {
 
         event.preventDefault();
-        var market = $('#trade-market').val();
-        var state = $('#trade-state').val();
-        var amount = $('#trade-amount').val();
-        socket.emit('trade', address, amount);
+        var args = {
+            'marketId': $('#trade-market').val(),
+            'marketState': $('#market-state').val(),
+            'tradeAmount': $('#trade-amount').val(),
+            'tradeType': $('#trade-type').val()
+        }
+        socket.emit('trade', args);
         $('#trade-modal').modal('hide');
     });
 

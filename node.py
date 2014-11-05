@@ -1,4 +1,4 @@
-import json, sys, os, socket, time, re, ast
+import json, sys, os, socket, time, re, ast, math, random
 
 # for signing 
 import hashlib, base64
@@ -14,6 +14,9 @@ import ecdsa
 # node monitoring and communication object/thread
 
 class Node(Thread):
+
+    BUY_SHARES_TARGET = '0' * 3 + '1' + '9' * 60
+    MAX_MESSAGE_SIZE = 60000
 
     def __init__(self, app, socketio):
 
@@ -55,6 +58,8 @@ class Node(Thread):
 
                 # check if node just came up
                 if not self.running:
+
+                    self.socketio.emit('node-starting', namespace='/socket.io/')
 
                     self.parse_block_chain()
                     self.socketio.emit('decisions', self.decisions[:20], namespace='/socket.io/')
@@ -121,6 +126,8 @@ class Node(Thread):
         cmd = os.path.join(self.app.config['TRUTHCOIN_PATH'], 'truth_cli.py')
         status = call([self.python_cmd, cmd, 'stop'])
 
+        node.running = False
+
     def connect(self):
 
         port = 8899
@@ -153,22 +160,17 @@ class Node(Thread):
             if msg['command'][0] == 'pushtx':
 
                 # add required args
-                msg['command'][1]['pubkeys'] = [ self.pubkey ]
+                msg['command'][1]['pubkeys'] = [ unicode(self.pubkey) ]
                 msg['command'][1]['count'] = self.my_tx_count
-
-                self.app.logger.info (self.privkey)
 
                 # hash message, sign and add sig
                 h = hashlib.sha384(json.dumps(msg['command'][1], sort_keys=True)).hexdigest()[0:64]
                 msg['command'][1]['signatures'] = [ ecdsa.ecdsa_sign(h, self.privkey)]
-                self.app.logger.info(msg['command'][1])
+
                 msg['command'][1] = json.dumps(msg['command'][1]).encode('base64')
-                self.app.logger.info(msg['command'][1])
 
                 # add privkey to pushtx
-                msg['command'].append(self.privkey)
-
-                self.app.logger.info(msg)
+                #msg['command'].append(self.privkey)
 
         json_msg = json.dumps(msg)
 
@@ -209,10 +211,8 @@ class Node(Thread):
 
     def receive(self, s, data=''):
 
-        MAX_MESSAGE_SIZE = 60000
-
         try:
-            data += s.recv(MAX_MESSAGE_SIZE)
+            data += s.recv(self.MAX_MESSAGE_SIZE)
 
         except:
             time.sleep(0.0001)
@@ -235,7 +235,7 @@ class Node(Thread):
 
         while len(data) < length:
 
-            d = s.recv(MAX_MESSAGE_SIZE - len(data))
+            d = s.recv(self.MAX_MESSAGE_SIZE - len(data))
 
             if not j:
                 return 'broken connection'
@@ -288,8 +288,45 @@ class Node(Thread):
 
         if id:
 
-            for market in self.markets:
+            market = self.send({'command':['info', id]})
 
-                if market['PM_id'] == id:
+            return market
 
-                    return market
+    def det_hash(self, tx):
+
+        return hashlib.sha384(json.dumps(tx, sort_keys=True)).hexdigest()[0:64]
+
+
+    def trade_pow(self, tx):
+
+        tx = json.loads(json.dumps(tx))
+
+        h = hashlib.sha384(json.dumps(tx, sort_keys=True)).hexdigest()[0:64]
+
+        tx[u'nonce'] = random.randint(0, 10000000000000000000000000000000000000000)
+
+        a = 'F' * 64
+
+        while hashlib.sha384(json.dumps(a, sort_keys=True)).hexdigest()[0:64] > self.BUY_SHARES_TARGET:
+
+            tx[u'nonce'] += 1
+            a = {u'nonce': tx['nonce'], u'halfHash': h}
+
+        return tx
+
+    def get_cost_per_share(self, tx):
+
+        market = self.get_market(id=tx['PM_id'])
+
+        B = market['B'] * 1.0
+
+        def C(s, B): return B * math.log(sum(map(lambda x: math.e ** (x/B), s)))
+
+        C_old = C(market['shares_purchased'], B)
+
+        def add(a, b): return a + b
+        
+        C_new = C(map(add, market['shares_purchased'], tx['buy']), B)
+        
+        return int(C_new - C_old)
+

@@ -87,7 +87,6 @@ def get_block(block_number):
     if data:
 
         block = pprint.pformat(data)
-        app.logger.info(block)
         emit('show-block', block)
 
 
@@ -116,7 +115,13 @@ def decisions():
 @socketio.on('markets', namespace='/socket.io/')
 def markets():
 
-    emit('markets', node.markets[:20])
+    markets = node.markets[0:20]
+
+    for m in markets:
+        data = node.get_market(m['PM_id'])
+        m['shares_purchased'] = data['shares_purchased']
+
+    emit('markets', markets)
 
 
 @socketio.on('branches', namespace='/socket.io/')
@@ -163,7 +168,7 @@ def send_cash(address, amount):
 
 
 @socketio.on('send-reps', namespace='/socket.io/')
-def send_credits(address, amount, branch):
+def send_reps(address, amount, branch):
 
     data = node.send({ 'command':['votecoin_spend', amount, branch, address] })
 
@@ -179,22 +184,23 @@ def add_decision(args):
 
     data = node.send({ 'command':['ask_decision', args['branchId'], args['decisionId'], '"'+args['decisionText']+'"'] })
 
-    app.logger.info(data)
-
 
 @socketio.on('trade', namespace='/socket.io/')
 def trade(args):
 
-    market = node.get_marget(id=args['marketId'])
+    market = node.get_market(id=args['marketId'])
+
+    app.logger.info(args)
+    app.logger.info(market)
 
     if market:
 
         tx = {
-            'PM_id': args['marketId'],
             'type': 'buy_shares',
-            'nonce': '',
-            'price_limit': 0,
-            'buy': []
+            'PM_id': args['marketId'],
+            'buy': [],
+            'pubkeys': [ unicode(node.pubkey) ],
+            'count': node.my_tx_count
         }
 
         if args['tradeType'] == 'sell':
@@ -203,11 +209,16 @@ def trade(args):
             amount = args['tradeAmount']
 
         # find state index
-        for i, s in enumerate(market.states):
+        for i, s in enumerate(market['states']):
             if s == args['marketState']:
-                tx['buy'].append(float(amount))
+                tx['buy'].append(int(amount))
             else:
                 tx['buy'].append(0)
+
+        cost = node.get_cost_per_share(tx)
+        tx['price_limit'] = int(cost * 1.01)
+
+        tx = node.trade_pow(tx)
 
     app.logger.info(tx)
     data = node.send({'command': ['pushtx', tx]})
