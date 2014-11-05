@@ -116,10 +116,16 @@ def decisions():
 def markets():
 
     markets = node.markets[0:20]
-
+    
     for m in markets:
         data = node.get_market(m['PM_id'])
-        m['shares_purchased'] = data['shares_purchased']
+        m['total_shares'] = data['shares_purchased']   # add extra db data to tx data
+
+        # check to see if we own any shares
+        if node.my_shares.get(m['PM_id']):
+            m['my_shares'] = node.my_shares[m['PM_id']]
+        else:
+            m['my_shares'] = []
 
     emit('markets', markets)
 

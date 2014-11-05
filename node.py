@@ -29,6 +29,7 @@ class Node(Thread):
 
         self.my_address = None
         self.my_tx_count = 0
+        self.my_shares = {}
         self.privkey = None
         self.pubkey = None
 
@@ -95,6 +96,7 @@ class Node(Thread):
                     data = self.send({ 'command': ['info', 'my_address'] })
                     if data:
                         self.my_tx_count = data.get('count', 1)
+                        self.my_shares = data.get('shares', {})
                         self.socketio.emit('info', data, namespace='/socket.io/')
 
             else:

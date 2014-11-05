@@ -176,17 +176,16 @@ nav .cash {
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>ID</th><th>Decisions</th><th>Fees</th><th>Shares</th><th></th>
+                            <th>ID</th><th>Decisions</th><th>Fees</th><th>Shares</th><th>Purchased</th><th></th>
                         <tr>
                     </thead>
                     <tbody class="markets">
                     </tbody>
                 </table>
-                
+
                 <br>
 
-                <h4 class="clearfix">Decisions 
-                    <a href="#add-decision-modal" data-toggle="modal" class="pull-right">Add decision</a>
+                <h4 class="clearfix">Decisions <a href="#add-decision-modal" data-toggle="modal" class="pull-right">Add decision</a>
                 </h4>
                 <table class="table table-striped">
                     <thead>
@@ -538,7 +537,7 @@ nav .cash {
                 _.each(m['states'], function(state) {
                     states.append($('<option>').val(state).text(state));
                 });
-                var row = $('<tr>').html('<td>'+m.PM_id+'</td><td>'+m.decisions.join(', ')+'</td><td>'+m.fees+'</td><td>'+m['shares_purchased'].join('/')+'</td>');
+                var row = $('<tr>').html('<td>'+m.PM_id+'</td><td>'+m.decisions.join(', ')+'</td><td>'+m.fees+'</td><td>'+m.total_shares.join('/')+'</td><td>'+m.my_shares.join('/')+'</td>');
                 var buy = $('<a>').attr('href', '#').text('buy').on('click', function() {
                     $('#trade-modal .trade-type').text('buy');
                     $('#trade-modal .market').text(m.PM_id);
