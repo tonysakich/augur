@@ -29,6 +29,7 @@ class Node(Thread):
         self.starting = False
 
         self.my_address = None
+        self.my_cash = 0
         self.my_tx_count = 0
         self.my_shares = {}
         self.my_branches = {}
@@ -66,17 +67,20 @@ class Node(Thread):
                     self.socketio.emit('blockcount', self.blockcount, namespace='/socket.io/')
 
                     # fetch and examine block txs
-                    block = self.send({ 'command': ['info', 'blockcount'] })
-                    if block['count']:
-                        self.examine_block(block)
+                    block = self.send({ 'command': ['info', self.blockcount] })
+                    if block:
+                        summary = self.examine_block(block)
 
                     # TODO: be smarter and examine block for account info changes
                     data = self.send({ 'command': ['info', 'my_address'] })
                     if data:
                         self.my_tx_count = data.get('count', 1)
+                        self.my_cash = data.get('amount', 0)
                         self.my_shares = data.get('shares', {})
                         self.my_branches = data.get('votecoin', {})
-                        self.socketio.emit('info', data, namespace='/socket.io/')
+
+                        self.socketio.emit('info', data, namespace='/socket.io/')   # TODO: convert to 'cash'
+
 
                 # check if node just came up
                 if not self.running:

@@ -403,10 +403,10 @@ nav .cash {
     <div id="explore-modal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
-                    <form>
+                <div class="modal-header clearfix">
+                    <form class="row">
                         <div class="col-lg-6">
-                            <div class="input-group">
+                            <div class="input-group input-group-sm">
                                 <input type="text" name="block-number" class="form-control" placeholder="Enter block number">
                                 <span class="input-group-btn">
                                     <button class="btn btn-info" type="submit">View</button>
@@ -448,7 +448,7 @@ nav .cash {
     socket.on('info', function (data) {
 
         if (data) {
-            $('.cash').html('<span class="pull-left">'+data.amount+' CASH</span><a class="pull-right" href="#send-cash-modal" data-toggle="modal">send</a>');
+            $('.cash').html('<span class="pull-left"><b>'+data.amount+'</b> CASH</span><a class="pull-right" href="#send-cash-modal" data-toggle="modal">send</a>');
         }
     });
 
