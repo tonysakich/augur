@@ -65,8 +65,10 @@ def check_status():
 
     if node.running:
         emit('node-up')
+    elif node.starting:
+        emit('node-starting')
     else:
-        emit('node-down')
+        emit('node-down')        
 
 
 @socketio.on('blockcount', namespace='/socket.io/')
@@ -210,14 +212,15 @@ def trade(args):
         }
 
         if args['tradeType'] == 'sell':
-            amount = 0 - args['tradeAmount']
+            amount = int(args['tradeAmount']) * -1
         else:
-            amount = args['tradeAmount']
+            amount = int(args['tradeAmount'])
 
         # find state index
         for i, s in enumerate(market['states']):
+            app.logger.info("%s %s" % (s, args['marketState']))
             if s == args['marketState']:
-                tx['buy'].append(int(amount))
+                tx['buy'].append(amount)
             else:
                 tx['buy'].append(0)
 

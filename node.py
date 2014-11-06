@@ -26,6 +26,7 @@ class Node(Thread):
         self.app = app
         self.socketio = socketio
         self.running = False
+        self.starting = False
 
         self.my_address = None
         self.my_tx_count = 0
@@ -60,7 +61,7 @@ class Node(Thread):
                 # check if node just came up
                 if not self.running:
 
-                    self.socketio.emit('node-starting', namespace='/socket.io/')
+                    self.starting = True
 
                     self.parse_block_chain()
                     self.socketio.emit('decisions', self.decisions[:20], namespace='/socket.io/')
@@ -79,7 +80,9 @@ class Node(Thread):
                         self.pubkey = ecdsa.privkey_to_pubkey(privkey)
 
                     self.socketio.emit('node-up', namespace='/socket.io/')
+
                     self.running = True
+                    self.starting = False
 
                 # watch for block count change and update 
                 if int(blockcount) != self.blockcount:
@@ -128,7 +131,7 @@ class Node(Thread):
         cmd = os.path.join(self.app.config['TRUTHCOIN_PATH'], 'truth_cli.py')
         status = call([self.python_cmd, cmd, 'stop'])
 
-        node.running = False
+        self.running = False
 
     def connect(self):
 
@@ -264,7 +267,7 @@ class Node(Thread):
 
     def examine_block(self, block):
 
-        if block.get('txs'):
+        if block and block.get('txs'):
 
             for tx in block['txs']:
 

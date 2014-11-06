@@ -101,7 +101,16 @@ nav .cash {
     font-size: 12px;
     margin-bottom: 10px;
 }
-
+.spin {
+    display: inline-block;
+    margin-left: 5px;
+    -webkit-transform-origin: 50% 50%;
+    transform-origin: 50% 50%;
+    -webkit-animation: spin 1s infinite linear;
+    -moz-animation: spin 1s infinite linear;
+    -o-animation: spin 1s infinite linear;
+    animation: spin 1s infinite linear;
+}
 
 </style>
 
@@ -120,7 +129,7 @@ nav .cash {
                     </ul>
                 </li>
                 <li class="dropdown node-starting" style="display:none;">
-                    <button class="btn btn-warning" data-toggle="dropdown">Node starting...</button>
+                    <button class="btn btn-warning" data-toggle="dropdown">Node starting <span class="glyphicon glyphicon-refresh spin"></span></button>
                     <ul class="dropdown-menu" role="menu">
                         <li><a href="#" id="toggle-miner" class="off">Cancel</a></li>
                     </ul>
@@ -650,7 +659,7 @@ nav .cash {
         event.preventDefault();
         var args = {
             'marketId': $('#trade-market').val(),
-            'marketState': $('#market-state').val(),
+            'marketState': $('#market-state select').val(),
             'tradeAmount': $('#trade-amount').val(),
             'tradeType': $('#trade-type').val()
         }
