@@ -71,6 +71,10 @@ class Node(Thread):
                     if block:
                         summary = self.examine_block(block)
 
+                        if summary:
+                            self.socketio.emit('alert', summary, namespace='/socket.io/')
+
+
                     # TODO: be smarter and examine block for account info changes
                     data = self.send({ 'command': ['info', 'my_address'] })
                     if data:
@@ -86,12 +90,9 @@ class Node(Thread):
                 if not self.running:
 
                     self.starting = True
+                    self.socketio.emit('node-starting', namespace='/socket.io/')
 
                     self.parse_block_chain()
-
-                    self.socketio.emit('decisions', self.decisions[:20], namespace='/socket.io/')
-                    self.socketio.emit('markets', self.markets[:20], namespace='/socket.io/')
-                    self.socketio.emit('branches', self.branches, namespace='/socket.io/')
 
                     address = self.send({ 'command': ['my_address'] })
                     if address:
@@ -286,8 +287,8 @@ class Node(Thread):
                 if tx['type'] == 'propose_decision':
 
                     self.decisions.append(tx)
-                    self.app.logger.info(tx)
-                    s = 'New decision added: %s' % None
+                    self.socketio.emit('decisions', self.decisions, namespace='/socket.io/')
+                    s = 'New decision added: %s (%s)' % (tx['txt'], tx['decision_id'])
 
                 elif tx['type'] == 'prediction_market':
 
@@ -298,6 +299,8 @@ class Node(Thread):
                     tx['my_shares'] = self.my_shares.get(tx['PM_id'], [])
 
                     self.markets.append(tx)
+                    self.socketio.emit('markets', self.markets[:20], namespace='/socket.io/')
+                    s = 'New market added: %s' % (tx['PM_id'])
 
                 elif tx['type'] == 'create_jury':
 
@@ -305,6 +308,8 @@ class Node(Thread):
                     tx['my_rep'] = self.my_branches.get(tx['vote_id'], 0)
 
                     self.branches.append(tx)
+                    self.socketio.emit('branches', self.branches, namespace='/socket.io/')
+                    s = 'New branch added: %s' % (tx['vote_id'])
 
                 elif tx['type'] == 'spend':
 
@@ -316,10 +321,7 @@ class Node(Thread):
                 if s:
                     summary.append(s)
 
-
-
-
-
+            return summary
 
 
     def parse_block_chain(self):

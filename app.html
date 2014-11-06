@@ -62,6 +62,18 @@ nav .cash {
     font-size: 12px;
 }
 
+.branches .branches-toggle:before {
+    content: 'show all';
+}
+.branches.all .branches-toggle:before {
+    content: 'less';
+}
+.branches .other {
+    display: none;
+}
+.branches.all .other {
+    display: block;
+}
 #password-modal .modal-dialog {
     width: 400px;
 }
@@ -471,11 +483,18 @@ nav .cash {
                     })
                     p.append(send);
                 } else {
-                    var p = $('<p>').html('<span>'+branch.vote_id+'</span>');
+                    var p = $('<p class="other">').html('<span>'+branch.vote_id+'</span>');
                 }
                 $('.branches').append(p);
             });
+
+            var bt = $('<a>').addClass('pull-right branches-toggle').on('click', function(event) {
+                $('.branches').toggleClass('all');
+            });
+            $('.branches').append(bt);
+
         } else {
+
             var p = $('<p>').html('<span class="pull-left">There are no branches</span>');
             $('.branches').empty().append(p);
         }
@@ -514,6 +533,7 @@ nav .cash {
 
         $('.node-stopped').hide();
         $('.node-starting').show();
+        $('#main').show();
     });
 
     socket.on('node-down', function () {

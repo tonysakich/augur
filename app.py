@@ -125,7 +125,7 @@ def markets():
 @socketio.on('branches', namespace='/socket.io/')
 def branches():
 
-    emit('branches', node.branches[:20])
+    emit('branches', node.branches)
 
 
 @socketio.on('start', namespace='/socket.io/')
