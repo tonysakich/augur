@@ -281,9 +281,13 @@ class Node(Thread):
 
             for tx in block['txs']:
 
+                s = None
+
                 if tx['type'] == 'propose_decision':
 
                     self.decisions.append(tx)
+
+                    s = 'New decision added: %s' % None
 
                 elif tx['type'] == 'prediction_market':
 
@@ -309,7 +313,8 @@ class Node(Thread):
                     else:
                         s = '%s recieved %s cash' % (tx['to'], tx['amount'])
 
-                summary.append(s)
+                if s:
+                    summary.append(s)
 
 
 
