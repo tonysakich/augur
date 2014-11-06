@@ -250,7 +250,7 @@ nav .cash {
                     <form>
                         <div class="col-lg-12">
                             <div class="input-group">
-                                <input type="text" name="branch-id" class="form-control" placeholder="Enter a branch branch ID">
+                                <input type="text" name="branch-id" id="branch-id" class="form-control" placeholder="Enter a branch branch ID">
                                 <span class="input-group-btn">
                                     <button class="btn btn-primary" type="submit">Create branch</button>
                                 </span>
@@ -449,24 +449,35 @@ nav .cash {
 
         if (data) {
             $('.cash').html('<span class="pull-left">'+data.amount+' CASH</span><a class="pull-right" href="#send-cash-modal" data-toggle="modal">send</a>');
-            if (data.votecoin) {
-                if (Object.keys(data.votecoin).length) {
-                    $('.branches').empty()
-                    $.each(data.votecoin, function(branch, rep) {
-                        var p = $('<p>').html('<span class="pull-left">'+branch+' ('+rep+')</span>').addClass('clearfix');
-                        var send = $('<a>').attr('href','#').addClass('pull-right').text('send').on('click', function() {
-                            $('#rep-branch').val(branch);
-                            $('#send-rep-modal .branch').text(branch);
-                            $('#send-rep-modal').modal('show');
-                        })
-                        p.append(send);
-                        $('.branches').append(p);
-                    });
+        }
+    });
+
+    socket.on('branches', function (branches) {
+
+        if (branches.length) {
+
+            $('.branches').empty()
+
+            // sort on reputation
+            branches.sort(function(a,b) {return (a.my_rep > b.my_rep) ? -1 : ((b.my_rep > a.my_rep) ? 1 : 0);} );
+
+            _.each(branches, function(branch) {
+                if (branch.my_rep) {
+                    var p = $('<p>').html('<span class="pull-left"><b>'+branch.vote_id+'</b> ('+branch.my_rep+')</span>').addClass('clearfix');
+                    var send = $('<a>').attr('href','#').addClass('pull-right').text('send').on('click', function() {
+                        $('#rep-branch').val(branch.vote_id);
+                        $('#send-rep-modal .branch').text(branch.vote_id);
+                        $('#send-rep-modal').modal('show');
+                    })
+                    p.append(send);
                 } else {
-                    var p = $('<p>').html('<span class="pull-left">You are not a member of any branch</span>');
-                    $('.branches').empty().append(p);
+                    var p = $('<p>').html('<span>'+branch.vote_id+'</span>');
                 }
-            }
+                $('.branches').append(p);
+            });
+        } else {
+            var p = $('<p>').html('<span class="pull-left">There are no branches</span>');
+            $('.branches').empty().append(p);
         }
     });
 

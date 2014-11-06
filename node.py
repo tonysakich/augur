@@ -31,6 +31,7 @@ class Node(Thread):
         self.my_address = None
         self.my_tx_count = 0
         self.my_shares = {}
+        self.my_branches = {}
         self.privkey = None
         self.pubkey = None
 
@@ -74,6 +75,7 @@ class Node(Thread):
                     if data:
                         self.my_tx_count = data.get('count', 1)
                         self.my_shares = data.get('shares', {})
+                        self.my_branches = data.get('votecoin', {})
                         self.socketio.emit('info', data, namespace='/socket.io/')
 
                 # check if node just came up
@@ -85,7 +87,7 @@ class Node(Thread):
 
                     self.socketio.emit('decisions', self.decisions[:20], namespace='/socket.io/')
                     self.socketio.emit('markets', self.markets[:20], namespace='/socket.io/')
-                    self.socketio.emit('branches', self.branches[:20], namespace='/socket.io/')
+                    self.socketio.emit('branches', self.branches, namespace='/socket.io/')
 
                     address = self.send({ 'command': ['my_address'] })
                     if address:
@@ -287,6 +289,10 @@ class Node(Thread):
                     self.markets.append(tx)
 
                 if tx['type'] == 'create_jury':
+
+                    # check to see if we own any reps
+                    tx['my_rep'] = self.my_branches.get(tx['vote_id'], 0)
+
                     self.branches.append(tx)
 
 

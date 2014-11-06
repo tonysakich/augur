@@ -174,6 +174,8 @@ def send_reps(address, amount, branch):
 @socketio.on('create-branch', namespace='/socket.io/')
 def create_branch(name):
 
+    app.logger.info(name)
+    
     data = node.send({ 'command':['create_jury', name] })
 
 
