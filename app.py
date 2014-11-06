@@ -27,17 +27,6 @@ app.config['TRUTHCOIN_PATH'] = '../Truthcoin-POW'
 @app.route('/', methods=['GET', 'POST'])
 def dash():
 
-    if request.method == 'POST':
-        if request.form.get('password'):
-            node.start_node(request.form['password'])
-
-    address = node.send( {'command': ['my_address']} )
-
-    if address:
-        status = 'running'
-    else:
-        status = 'stopped'
-
     return render_template('app.html')
 
 
@@ -48,6 +37,18 @@ def info(arg):
 
     if data:
         emit('info', data)
+
+
+@socketio.on('end-date', namespace='/socket.io/')
+def end_date():
+
+    end_date = node.next_end_date()
+
+    if end_date:
+
+        formatted_end_date = end_date.strftime('%A, %B %d %H:%M')
+
+        emit('period-end', formatted_end_date)
 
 
 @socketio.on('my_address', namespace='/socket.io/')
@@ -77,7 +78,7 @@ def blockcount():
     data = node.send({ 'command': ['blockcount'] })
 
     if data:
-
+ 
         emit('blockcount', data)
 
 

@@ -58,6 +58,9 @@ nav .cash {
     margin-top: 7px;
 }
 
+.dash h3 {
+    margin: 8px 0px 38px 0px;
+}
 .sidebar .panel {
     font-size: 12px;
 }
@@ -192,6 +195,8 @@ nav .cash {
             </div>
           
             <div class="col-sm-9">
+
+                <h3>Current period ending <span id="period-end-date"></span></h3>
 
                 <h4 class="clearfix">Markets <a href="#add-market-modal" data-toggle="modal" class="pull-right">Add a market</a></h4>
                 <table class="table table-striped">
@@ -505,6 +510,11 @@ nav .cash {
         $('.address').html(address);
     });
 
+   socket.on('period-end', function (date) {
+
+        $('#period-end-date').text(date);
+    });
+
     socket.on('blockcount', function (count) {
 
         $('.blocks').html('<span class="pull-left"><b>'+count+'</b> BLOCKS</span><a class="pull-right" href="#explore-modal" data-toggle="modal">explore</a>');
@@ -533,7 +543,7 @@ nav .cash {
 
         $('.node-stopped').hide();
         $('.node-starting').show();
-        $('#main').show();
+        //$('#main').show();
     });
 
     socket.on('node-down', function () {
@@ -720,6 +730,7 @@ nav .cash {
         socket.emit('stop');
     });
 
+    socket.emit('end-date');
     socket.emit('my_address');
     socket.emit('info', 'my_address');
     socket.emit('peers');
