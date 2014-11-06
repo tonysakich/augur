@@ -163,37 +163,31 @@ def miner(arg):
 def send_cash(address, amount):
 
     data = node.send({ 'command':['spend', amount, address] })
-
-    app.logger.info(data)
+    app.logger.debug(data)
 
 @socketio.on('send-reps', namespace='/socket.io/')
 def send_reps(address, amount, branch):
 
     data = node.send({ 'command':['votecoin_spend', amount, branch, address] })
-
-    app.logger.info(data)
+    app.logger.debug(data)
 
 @socketio.on('create-branch', namespace='/socket.io/')
 def create_branch(name):
 
-    app.logger.info(name)
-
     data = node.send({ 'command':['create_jury', name] })
-
+    app.logger.debug(data)
 
 @socketio.on('add-decision', namespace='/socket.io/')
 def add_decision(args):
 
     data = node.send({ 'command':['ask_decision', args['branchId'], args['decisionId'], '"'+args['decisionText']+'"'] })
+    app.logger.debug(data)
 
 
 @socketio.on('trade', namespace='/socket.io/')
 def trade(args):
 
     market = node.get_market(id=args['marketId'])
-
-    app.logger.info(args)
-    app.logger.info(market)
 
     if market:
 
@@ -223,9 +217,8 @@ def trade(args):
 
         tx = node.trade_pow(tx)
 
-    app.logger.info(tx)
     data = node.send({'command': ['pushtx', tx]})
-    app.logger.info(data)
+    app.logger.debug(data)
 
 
 @socketio.on('add-market', namespace='/socket.io/')
@@ -243,15 +236,14 @@ def add_market(args):
     }
 
     data = node.send({'command': ['pushtx', tx]})
-
-    app.logger.info(data)
+    app.logger.debug(data)
 
 
 @socketio.on('new-address', namespace='/socket.io/')
 def new_address(data):
 
     data = node.send({'command': ['new_address']})
-    app.logger.info(data)
+    app.logger.debug(data)
 
 
 ###

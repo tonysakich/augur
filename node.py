@@ -286,7 +286,7 @@ class Node(Thread):
                 if tx['type'] == 'propose_decision':
 
                     self.decisions.append(tx)
-
+                    self.app.logger.info(tx)
                     s = 'New decision added: %s' % None
 
                 elif tx['type'] == 'prediction_market':
