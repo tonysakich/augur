@@ -164,18 +164,20 @@ def send_cash(address, amount):
 
     data = node.send({ 'command':['spend', amount, address] })
 
+    app.logger.info(data)
 
 @socketio.on('send-reps', namespace='/socket.io/')
 def send_reps(address, amount, branch):
 
     data = node.send({ 'command':['votecoin_spend', amount, branch, address] })
 
+    app.logger.info(data)
 
 @socketio.on('create-branch', namespace='/socket.io/')
 def create_branch(name):
 
     app.logger.info(name)
-    
+
     data = node.send({ 'command':['create_jury', name] })
 
 

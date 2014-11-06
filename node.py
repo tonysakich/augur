@@ -277,12 +277,15 @@ class Node(Thread):
 
         if block and block.get('txs'):
 
+            summary = []
+
             for tx in block['txs']:
 
                 if tx['type'] == 'propose_decision':
+
                     self.decisions.append(tx)
 
-                if tx['type'] == 'prediction_market':
+                elif tx['type'] == 'prediction_market':
 
                     data = self.get_market(tx['PM_id'])
                     tx['total_shares'] = data.get('shares_purchased', [])   # add extra db data to tx data
@@ -292,12 +295,26 @@ class Node(Thread):
 
                     self.markets.append(tx)
 
-                if tx['type'] == 'create_jury':
+                elif tx['type'] == 'create_jury':
 
                     # check to see if we own any reps
                     tx['my_rep'] = self.my_branches.get(tx['vote_id'], 0)
 
                     self.branches.append(tx)
+
+                elif tx['type'] == 'spend':
+
+                    if tx.get('vote_id'):
+                        s = '%s recieved %s %s reputation' % (tx['to'], tx['amount'], tx['vote_id'])
+                    else:
+                        s = '%s recieved %s cash' % (tx['to'], tx['amount'])
+
+                summary.append(s)
+
+
+
+
+
 
 
     def parse_block_chain(self):
