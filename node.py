@@ -58,12 +58,31 @@ class Node(Thread):
 
             if blockcount:
 
+                # watch for block count change and update 
+                if int(blockcount) != self.blockcount:
+
+                    self.blockcount = int(blockcount)
+                    self.socketio.emit('blockcount', self.blockcount, namespace='/socket.io/')
+
+                    # fetch and examine block txs
+                    block = self.send({ 'command': ['info', 'blockcount'] })
+                    if block['count']:
+                        self.examine_block(block)
+
+                    # TODO: be smarter and examine block for account info changes
+                    data = self.send({ 'command': ['info', 'my_address'] })
+                    if data:
+                        self.my_tx_count = data.get('count', 1)
+                        self.my_shares = data.get('shares', {})
+                        self.socketio.emit('info', data, namespace='/socket.io/')
+
                 # check if node just came up
                 if not self.running:
 
                     self.starting = True
 
                     self.parse_block_chain()
+
                     self.socketio.emit('decisions', self.decisions[:20], namespace='/socket.io/')
                     self.socketio.emit('markets', self.markets[:20], namespace='/socket.io/')
                     self.socketio.emit('branches', self.branches[:20], namespace='/socket.io/')
@@ -83,24 +102,6 @@ class Node(Thread):
 
                     self.running = True
                     self.starting = False
-
-                # watch for block count change and update 
-                if int(blockcount) != self.blockcount:
-
-                    self.blockcount = int(blockcount)
-                    self.socketio.emit('blockcount', self.blockcount, namespace='/socket.io/')
-
-                    # fetch and examine block txs
-                    block = self.send({ 'command': ['info', 'blockcount'] })
-                    if block['count']:
-                        self.examine_block(block)
-
-                    # TODO: be smarter and examine block for account info changes
-                    data = self.send({ 'command': ['info', 'my_address'] })
-                    if data:
-                        self.my_tx_count = data.get('count', 1)
-                        self.my_shares = data.get('shares', {})
-                        self.socketio.emit('info', data, namespace='/socket.io/')
 
             else:
 
@@ -169,7 +170,7 @@ class Node(Thread):
                 msg['command'][1]['count'] = self.my_tx_count
 
                 # hash message, sign and add sig
-                h = hashlib.sha384(json.dumps(msg['command'][1], sort_keys=True)).hexdigest()[0:64]
+                h = self.det_hash(msg['command'][1])
                 msg['command'][1]['signatures'] = [ ecdsa.ecdsa_sign(h, self.privkey)]
 
                 msg['command'][1] = json.dumps(msg['command'][1]).encode('base64')
@@ -265,6 +266,7 @@ class Node(Thread):
 
         return data
 
+
     def examine_block(self, block):
 
         if block and block.get('txs'):
@@ -273,10 +275,20 @@ class Node(Thread):
 
                 if tx['type'] == 'propose_decision':
                     self.decisions.append(tx)
+
                 if tx['type'] == 'prediction_market':
+
+                    data = self.get_market(tx['PM_id'])
+                    tx['total_shares'] = data.get('shares_purchased', [])   # add extra db data to tx data
+
+                    # check to see if we own any shares
+                    tx['my_shares'] = self.my_shares.get(tx['PM_id'], [])
+
                     self.markets.append(tx)
+
                 if tx['type'] == 'create_jury':
                     self.branches.append(tx)
+
 
     def parse_block_chain(self):
 
@@ -289,6 +301,7 @@ class Node(Thread):
             block = self.send({'command':['info', n]})
             self.examine_block(block)
 
+
     def get_market(self, id=None):
 
         if id:
@@ -296,6 +309,7 @@ class Node(Thread):
             market = self.send({'command':['info', id]})
 
             return market
+
 
     def det_hash(self, tx):
 
@@ -306,18 +320,19 @@ class Node(Thread):
 
         tx = json.loads(json.dumps(tx))
 
-        h = hashlib.sha384(json.dumps(tx, sort_keys=True)).hexdigest()[0:64]
+        h = self.det_hash(tx)
 
         tx[u'nonce'] = random.randint(0, 10000000000000000000000000000000000000000)
 
         a = 'F' * 64
 
-        while hashlib.sha384(json.dumps(a, sort_keys=True)).hexdigest()[0:64] > self.BUY_SHARES_TARGET:
+        while self.det_hash(a) > self.BUY_SHARES_TARGET:
 
             tx[u'nonce'] += 1
             a = {u'nonce': tx['nonce'], u'halfHash': h}
 
         return tx
+
 
     def get_cost_per_share(self, tx):
 
