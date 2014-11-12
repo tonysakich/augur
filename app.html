@@ -514,11 +514,6 @@ nav .cash {
         $('.address').html(address);
     });
 
-   socket.on('period-end', function (date) {
-
-        $('#period-end-date').text(date);
-    });
-
     socket.on('blockcount', function (count) {
 
         $('.blocks').html('<span class="pull-left"><b>'+count+'</b> BLOCKS</span><a class="pull-right" href="#explore-modal" data-toggle="modal">explore</a>');
@@ -732,7 +727,6 @@ nav .cash {
         socket.emit('stop');
     });
 
-    socket.emit('end-date');
     socket.emit('my_address');
     socket.emit('info', 'my_address');
     socket.emit('peers');

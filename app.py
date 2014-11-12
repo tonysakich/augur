@@ -39,18 +39,6 @@ def info(arg):
         emit('info', data)
 
 
-@socketio.on('end-date', namespace='/socket.io/')
-def end_date():
-
-    end_date = node.next_end_date()
-
-    if end_date:
-
-        formatted_end_date = end_date.strftime('%A, %B %d %H:%M')
-
-        emit('period-end', formatted_end_date)
-
-
 @socketio.on('my_address', namespace='/socket.io/')
 def my_address():
 

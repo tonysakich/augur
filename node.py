@@ -404,19 +404,3 @@ class Node(Thread):
         
         return int(C_new - C_old)
 
-
-    def next_end_date(self):
-
-        now = datetime.datetime.utcnow()
-        end_weekday = 4
-
-        if now.weekday() < end_weekday:
-            day_delta = end_weekday - now.weekday()
-        else:
-            day_delta = 6 - now.weekday() + end_weekday
-
-        end_date = now + datetime.timedelta(days=day_delta)
-        end_date = end_date.replace(hour=12, minute=0, second=0, microsecond=0)  # change to noon
-
-        return end_date
-
