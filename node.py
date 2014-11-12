@@ -27,6 +27,7 @@ class Node(Thread):
         self.socketio = socketio
         self.running = False
         self.starting = False
+        self.current = False
 
         self.my_address = None
         self.my_cash = 0
@@ -63,6 +64,10 @@ class Node(Thread):
                 # watch for block count change and update 
                 if int(blockcount) != self.blockcount:
 
+                    # hack to try to detect when our blockcount is current
+                    if int(blockcount) - self.blockcount < 4 or int(blockcount) - self.blockcount > 100:
+                        self.current = True
+
                     self.blockcount = int(blockcount)
                     self.socketio.emit('blockcount', self.blockcount, namespace='/socket.io/')
 
@@ -78,6 +83,7 @@ class Node(Thread):
                     # TODO: be smarter and examine block for account info changes
                     data = self.send({ 'command': ['info', 'my_address'] })
                     if data:
+
                         self.my_tx_count = data.get('count', 1)
                         self.my_cash = data.get('amount', 0)
                         self.my_shares = data.get('shares', {})
@@ -286,6 +292,19 @@ class Node(Thread):
 
                 if tx['type'] == 'propose_decision':
 
+                    # only do this math if we can trust the blockcount is current
+                    if self.current:
+                        if tx['maturation'] > self.blockcount:
+                            block_delta = tx['maturation'] - self.blockcount
+                            minutes = int(block_delta / 2)   # assumes 2 minutes per block
+                            date = datetime.datetime.now() + datetime.timedelta(minutes=minutes)
+                            tx['date'] = date.strftime('%b %d, %Y')
+                        else:
+                            tx['date'] = 'expired'
+                    else:
+                        tx['date'] = '-'
+
+
                     self.decisions.append(tx)
                     self.socketio.emit('decisions', self.decisions, namespace='/socket.io/')
                     s = 'New decision added: %s (%s)' % (tx['txt'], tx['decision_id'])
@@ -313,10 +332,11 @@ class Node(Thread):
 
                 elif tx['type'] == 'spend':
 
+                    sender = ''
                     if tx.get('vote_id'):
-                        s = '%s recieved %s %s reputation' % (tx['to'], tx['amount'], tx['vote_id'])
+                        s = '%s recieved %s %s reputation' % (sender, tx['amount'], tx['vote_id'], tx['to'])
                     else:
-                        s = '%s recieved %s cash' % (tx['to'], tx['amount'])
+                        s = '%s sent %s cash to %s' % (sender, tx['amount'], tx['to'])
 
                 if s:
                     summary.append(s)

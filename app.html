@@ -196,8 +196,6 @@ nav .cash {
           
             <div class="col-sm-9">
 
-                <h3>Current period ending <span id="period-end-date"></span> UTC</h3>
-
                 <h4 class="clearfix">Markets <a href="#add-market-modal" data-toggle="modal" class="pull-right">Add a market</a></h4>
                 <table class="table table-striped">
                     <thead>
@@ -205,8 +203,7 @@ nav .cash {
                             <th>ID</th><th>Decisions</th><th>Fees</th><th>Shares</th><th>Purchased</th><th></th>
                         <tr>
                     </thead>
-                    <tbody class="markets">
-                    </tbody>
+                    <tbody class="markets"></tbody>
                 </table>
 
                 <br>
@@ -216,11 +213,10 @@ nav .cash {
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>Description</th><th>ID</th><th>Branch</th><th>Duration</th>
+                            <th>Description</th><th>ID</th><th>Branch</th><th>Matures</th>
                         <tr>
                     </thead>
-                    <tbody class="decisions">
-                    </tbody>
+                    <tbody class="decisions"></tbody>
                 </table>
             </div>
         </div>
@@ -267,7 +263,7 @@ nav .cash {
                     <form>
                         <div class="col-lg-12">
                             <div class="input-group">
-                                <input type="text" name="branch-id" id="branch-id" class="form-control" placeholder="Enter a branch branch ID">
+                                <input type="text" name="branch-id" id="branch-id" class="form-control" placeholder="Enter a branch ID">
                                 <span class="input-group-btn">
                                     <button class="btn btn-primary" type="submit">Create branch</button>
                                 </span>
@@ -360,8 +356,8 @@ nav .cash {
                 <div class="modal-body clearfix">
                     <form role="form">
                         <div class="form-group">
-                            <label for="decision-branch">Branch ID</label>
-                            <input type="text" class="form-control" id="decision-branch" placeholder="Enter branch ID">
+                            <label for="decision-branch">Branch</label>
+                            <select class="form-control branches" id="decision-branch" name="decision-branch"></select>
                         </div>
                         <div class="form-group">
                             <label for="decision-id">Decision ID</label>
@@ -372,8 +368,8 @@ nav .cash {
                             <input type="text" class="form-control" id="decision-text" placeholder="Enter a short decision description">
                         </div>
                         <div class="form-group">
-                            <label for="decision-date">Decision mature date <i>(not currently supported)</i></label>
-                            <input type="text" class="form-control" id="decision-date" placeholder="Enter the date the decision matures">
+                            <label for="decision-date">Days to maturation</label>
+                            <input type="text" class="form-control" id="decision-time" placeholder="Enter number of days when decision matures">
                         </div>
                         <button type="submit" class="btn btn-primary pull-right">Submit decision</button>
                     </form>
@@ -457,6 +453,7 @@ nav .cash {
 
     var socket = io.connect(window.location.protocol + '//' + document.domain + ':' + location.port + '/socket.io/');
     var _market = {}
+    var _branch = {}
 
 
     ////
@@ -479,6 +476,13 @@ nav .cash {
             branches.sort(function(a,b) {return (a.my_rep > b.my_rep) ? -1 : ((b.my_rep > a.my_rep) ? 1 : 0);} );
 
             _.each(branches, function(branch) {
+
+                // update local branches
+                _branch[branch['vote_id']] = branch;
+
+                // update add decision modal
+                $('#decision-branch').append($('<option>').val(branch.vote_id).text(branch.vote_id));
+
                 if (branch.my_rep) {
                     var p = $('<p>').html('<span class="pull-left"><b>'+branch.vote_id+'</b> ('+branch.my_rep+')</span>').addClass('clearfix');
                     var send = $('<a>').attr('href','#').addClass('pull-right').text('send').on('click', function() {
@@ -568,7 +572,7 @@ nav .cash {
         if (decisions.length) {
             $('.decisions').empty();
             $.each(decisions, function(i, d) {
-                $('.decisions').append('<tr><td>'+d.txt+'</td><td>'+d.decision_id+'</td><td>'+d.vote_id+'</td><td>--</td></tr>');
+                $('.decisions').append('<tr><td>'+d.txt+'</td><td>'+d.decision_id+'</td><td>'+d.vote_id+'</td><td>'+d.date+'</td></tr>');
             });
         }
     });
@@ -578,10 +582,8 @@ nav .cash {
             $('.markets').empty();
             $.each(markets, function(i, m) {
 
-                console.log(m);
-
-                // load market hash
-                _market[m['PM_id']] = m
+                // update local markets
+                _market[m['PM_id']] = m;
 
                 var states = $('<select>').addClass('states, form-control').attr('name', 'market-state');
                 _.each(m['states'], function(state) {
@@ -657,7 +659,6 @@ nav .cash {
         $('#create-branch-modal').modal('hide');
     });
 
-
     $('#add-decision-modal form').on('submit', function(event) {
 
         event.preventDefault();
@@ -665,7 +666,8 @@ nav .cash {
         var args = {
             'branchId': $('#decision-branch').val(),
             'decisionId': $('#decision-id').val(),
-            'decisionText': $('#decision-text').val()
+            'decisionText': $('#decision-text').val(),
+            'decisionTime': $('#decision-time').val()
         }
         socket.emit('add-decision', args);
         $('#add-decision-modal').modal('hide');

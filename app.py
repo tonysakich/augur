@@ -181,7 +181,10 @@ def create_branch(name):
 @socketio.on('add-decision', namespace='/socket.io/')
 def add_decision(args):
 
-    data = node.send({ 'command':['ask_decision', args['branchId'], args['decisionId'], '"'+args['decisionText']+'"'] })
+    # calulate maturation block from days 
+    block = node.blockcount + (720 * int(args['decisionTime']))
+
+    data = node.send({ 'command':['ask_decision', args['branchId'], block, args['decisionId'], '"'+args['decisionText']+'"'] })
     app.logger.debug(data)
 
 
@@ -258,6 +261,9 @@ if __name__ == '__main__':
     socketio.run(app, host='127.0.0.1', port=9000)
 
     print "stopping..."
+
+    # stop node monitor
+    node.exit(wait_for_exit=True)
 
     try:
         stopper.wait()
