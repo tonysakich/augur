@@ -31,7 +31,8 @@ h1, h2, h3, h4, h5 {
     font-weight: 200;
 }
 
-h4 a {
+h4 a,
+h4 span {
     font-size: 14px;
 }
 table {
@@ -116,6 +117,10 @@ nav .cash {
     font-size: 12px;
     margin-bottom: 10px;
 }
+.reporting {
+    display: none;
+    margin-bottom: 30px;
+}
 .spin {
     display: inline-block;
     margin-left: 5px;
@@ -126,7 +131,17 @@ nav .cash {
     -o-animation: spin 1s infinite linear;
     animation: spin 1s infinite linear;
 }
-
+.alert {
+    position: fixed;
+    width: 100%;
+    min-height: 40px;
+    background-color: #dadada;
+    opacity: 0.8;
+    bottom: 0;
+    margin-bottom: 0px;
+    border-radius: 0;
+    display: none;
+}
 </style>
 
 <body>
@@ -195,6 +210,11 @@ nav .cash {
             </div>
           
             <div class="col-sm-9">
+                
+                <div class="reporting">
+                    <h3 class="clearfix"></h3>
+
+                </div>
 
                 <h4 class="clearfix">Markets <a href="#add-market-modal" data-toggle="modal" class="pull-right">Add a market</a></h4>
                 <table class="table table-striped">
@@ -231,6 +251,7 @@ nav .cash {
 
     </footer>
 
+    <div class="alert"></div>
 
     <!-- modals dialogs -->
 
@@ -238,7 +259,7 @@ nav .cash {
         <div class="modal-dialog model-sm">
             <div class="modal-content">
                 <div class="modal-body clearfix">
-                    <form>
+                    <form method="POST">
                         <div class="col-lg-12">
                             <div class="input-group">
                                 <input type="password" name="password" class="form-control" placeholder="Enter your password or public key" autofocus>
@@ -466,6 +487,20 @@ nav .cash {
         }
     });
 
+
+    socket.on('report', function (cycle_end, last_cycle_end, decisions) {
+
+        if (decisions.length) {
+
+            $('.reporting h3').html('Reporting <span class="pull-right">Cycle ending ' + last_cycle_end + '</span>');
+
+        } else {
+
+            $('.reporting h3').html('Cycle ending ' + cycle_end);
+        }
+        $('.reporting').show()
+    });
+
     socket.on('branches', function (branches) {
 
         if (branches.length) {
@@ -473,9 +508,9 @@ nav .cash {
             $('.branches').empty()
 
             // sort on reputation
-            branches.sort(function(a,b) {return (a.my_rep > b.my_rep) ? -1 : ((b.my_rep > a.my_rep) ? 1 : 0);} );
+            branches = branches.sort(function(a,b) {return (a.my_rep > b.my_rep) ? -1 : ((b.my_rep > a.my_rep) ? 1 : 0);} );
             var has_branches = false;
-            
+
             _.each(branches, function(branch) {
 
                 // update local branches
@@ -500,11 +535,6 @@ nav .cash {
                 }
                 $('.branches').append(p);
             });
-            
-            if (!has_branches) {
-                var p = $('<p>').html('<span class="pull-left">You have no branches</span>');
-                $('.branches').prepend(p);
-            }
 
             var bt = $('<a>').addClass('pull-right branches-toggle').on('click', function(event) {
                 $('.branches').toggleClass('all');
@@ -563,20 +593,20 @@ nav .cash {
     });
 
     socket.on('peers', function (peers) {
-        if (peers.length) {
-            $('.peers').empty();
-            $.each(peers, function(i, peer) {
-                var p = $('<p>').text(peer);
-                $('.peers').append(p);
-            });
-        }
+
+        $('.peers').empty();
+
+        $.each(peers, function(address, info) {
+            var p = $('<p>').text(address);
+            $('.peers').append(p);
+        });
     });
 
     socket.on('decisions', function (decisions) {
         if (decisions.length) {
             $('.decisions').empty();
             $.each(decisions, function(i, d) {
-                $('.decisions').append('<tr><td>'+d.txt+'</td><td>'+d.decision_id+'</td><td>'+d.vote_id+'</td><td>'+d.date+'</td></tr>');
+                $('.decisions').append('<tr><td>'+d.txt+'</td><td>'+d.decision_id+'</td><td>'+d.vote_id+'</td><td>'+d.maturation_date+'</td></tr>');
             });
         }
     });
@@ -738,7 +768,6 @@ nav .cash {
 
     socket.emit('my_address');
     socket.emit('info', 'my_address');
-    socket.emit('peers');
     socket.emit('miner', 'status');
     socket.emit('blockcount');
 
@@ -747,6 +776,8 @@ nav .cash {
     socket.emit('decisions');
     socket.emit('markets');
     socket.emit('branches');
+
+    socket.emit('reporting');
 
 })()
 </script>

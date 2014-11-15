@@ -18,9 +18,6 @@ node = Node(app, socketio)
 
 app.config['DEBUG'] = True
 
-# change this to point to the core 
-app.config['TRUTHCOIN_PATH'] = '../Truthcoin-POW'
-
 ###
 # routes and websocket handlers
 
@@ -39,16 +36,6 @@ def info(arg):
         emit('info', data)
 
 
-@socketio.on('my_address', namespace='/socket.io/')
-def my_address():
-
-    data = node.send({ 'command': ['my_address'] })
-
-    if data:
-
-        emit('my-address', data)
-
-
 @socketio.on('check-status', namespace='/socket.io/')
 def check_status():
 
@@ -62,12 +49,20 @@ def check_status():
 
 @socketio.on('blockcount', namespace='/socket.io/')
 def blockcount():
-
-    data = node.send({ 'command': ['blockcount'] })
-
-    if data:
  
-        emit('blockcount', data)
+    emit('blockcount', node.blockcount, node.current)
+
+
+@socketio.on('reporting', namespace='/socket.io/')
+def reporting():
+
+    emit('report', node.cycle['end_date'], node.cycle['last_end_date'], node.cycle['reporting'], namespace='/socket.io/')
+
+
+@socketio.on('my_address', namespace='/socket.io/')
+def my_address():
+
+    emit('my-address', node.my_account['address'], namespace='/socket.io/')
 
 
 @socketio.on('get-block', namespace='/socket.io/')
@@ -84,17 +79,7 @@ def get_block(block_number):
 @socketio.on('peers', namespace='/socket.io/')
 def peers():
 
-    data = node.send({'command': ['peers']})
-
-    if data:
-
-        peers = []
-
-        for peer in data:
-            peers.append("%s:%s" % (peer[0][0], peer[0][1]))
-        if peers:
-            peers = list(set(peers))
-            emit('peers', peers)
+    emit('peers', node.peers)
 
 
 @socketio.on('decisions', namespace='/socket.io/')
@@ -170,7 +155,8 @@ def create_branch(name):
 def add_decision(args):
 
     # calulate maturation block from days 
-    block = node.blockcount + (720 * int(args['decisionTime']))
+    block = node.blockcount + (1440 / node.MINUTES_PER_BLOCK) * int(args['decisionTime'])
+    #block = node.blockcount + 100
 
     data = node.send({ 'command':['ask_decision', args['branchId'], block, args['decisionId'], '"'+args['decisionText']+'"'] })
     app.logger.debug(data)
@@ -188,7 +174,7 @@ def trade(args):
             'PM_id': args['marketId'],
             'buy': [],
             'pubkeys': [ unicode(node.pubkey) ],
-            'count': node.my_tx_count
+            'count': node.my_account['tx_count']
         }
 
         if args['tradeType'] == 'sell':
@@ -221,20 +207,13 @@ def add_market(args):
         "PM_id": args['marketId'],
         "decisions": args["marketDecisions"].split(','),
         "fees": 0,
-        "owner": node.my_address,
+        "owner": node.my_account['address'],
         "states": args["marketStates"].split(','),
         "states_combinatory": args["marketDep"],
         "type": "prediction_market",
     }
 
     data = node.send({'command': ['pushtx', tx]})
-    app.logger.debug(data)
-
-
-@socketio.on('new-address', namespace='/socket.io/')
-def new_address(data):
-
-    data = node.send({'command': ['new_address']})
     app.logger.debug(data)
 
 
