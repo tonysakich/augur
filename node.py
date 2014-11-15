@@ -18,7 +18,7 @@ class Node(Thread):
     BUY_SHARES_TARGET = '0' * 3 + '1' + '9' * 60
     MAX_MESSAGE_SIZE = 60000
     MINUTES_PER_BLOCK = 2
-    REPORT_CYCLE = 5040    # in blocks (one week)
+    REPORT_CYCLE = 10    # in blocks (one week)
 
     PORT = 8899
     HOST = 'localhost'

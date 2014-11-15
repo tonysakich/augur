@@ -155,8 +155,8 @@ def create_branch(name):
 def add_decision(args):
 
     # calulate maturation block from days 
-    block = node.blockcount + (1440 / node.MINUTES_PER_BLOCK) * int(args['decisionTime'])
-    #block = node.blockcount + 100
+    #block = node.blockcount + (1440 / node.MINUTES_PER_BLOCK) * int(args['decisionTime'])
+    block = node.blockcount + 20 
 
     data = node.send({ 'command':['ask_decision', args['branchId'], block, args['decisionId'], '"'+args['decisionText']+'"'] })
     app.logger.debug(data)

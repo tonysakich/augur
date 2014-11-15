@@ -32,7 +32,8 @@ h1, h2, h3, h4, h5 {
 }
 
 h4 a,
-h4 span {
+h4 span,
+h3 span {
     font-size: 14px;
 }
 table {
@@ -476,6 +477,18 @@ nav .cash {
     var _market = {}
     var _branch = {}
 
+    function formatDate(date) {
+
+        months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Oct','Sep','Nov','Dec'];
+        d = new Date(date);
+
+        var hour = d.getHours() > 11  ? d.getHours() - 11 : d.getHours() + 1;
+        var apm = d.getHours() > 10 || d.getHours() == 23 && d.getHours() != 0 ? 'pm' : 'am';
+        var minutes = d.getMinutes() < 10 ? '0'+ d.getMinutes() : d.getMinutes();
+  
+        return months[d.getDay()]+' '+d.getDate()+', '+d.getFullYear()+' / '+hour+':'+minutes+' '+apm;
+    }
+
 
     ////
     // socket events
@@ -490,9 +503,11 @@ nav .cash {
 
     socket.on('report', function (cycle_end, last_cycle_end, decisions) {
 
+        formatDate(cycle_end);
+
         if (decisions.length) {
 
-            $('.reporting h3').html('Reporting <span class="pull-right">Cycle ending ' + last_cycle_end + '</span>');
+            $('.reporting h3').html('Reporting <span class="pull-right">Cycle ending ' + formatDate(last_cycle_end) + '</span>');
 
         } else {
 
@@ -606,7 +621,7 @@ nav .cash {
         if (decisions.length) {
             $('.decisions').empty();
             $.each(decisions, function(i, d) {
-                $('.decisions').append('<tr><td>'+d.txt+'</td><td>'+d.decision_id+'</td><td>'+d.vote_id+'</td><td>'+d.maturation_date+'</td></tr>');
+                $('.decisions').append('<tr><td>'+d.txt+'</td><td>'+d.decision_id+'</td><td>'+d.vote_id+'</td><td>'+formatDate(d.maturation_date)+'</td></tr>');
             });
         }
     });
