@@ -135,7 +135,7 @@ nav .cash {
     border-bottom-right-radius: 0; 
 }
 .reporting p {
-    font-size: 16px;
+    font-size: 14px;
 }
 .reporting button[type=submit] {
     position: relative;
@@ -578,7 +578,7 @@ nav .cash {
 
         augur.cycle = cycle;
 
-        if (cycle.reporting) {
+        if (!$.isEmptyObject(cycle.reporting)) {
 
             $('.reporting h3').html('Reporting <span class="pull-right">Cycle ending ' + formatDate(cycle.last_end_date) + '</span>');
 
