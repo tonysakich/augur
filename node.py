@@ -15,15 +15,17 @@ import ecdsa
 
 class Node(Thread):
 
-    BUY_SHARES_TARGET = '0' * 3 + '1' + '9' * 60
+    SLEEP_INTERVAL = 1
     MAX_MESSAGE_SIZE = 60000
+
+    BUY_SHARES_TARGET = '0' * 3 + '1' + '9' * 60
     MINUTES_PER_BLOCK = 2
     REPORT_CYCLE = 5040    # in blocks (one week)
 
+    # node settings
     PORT = 8899
     HOST = 'localhost'
     TRUTHCOIN_PATH = '../Truthcoin-POW'
-    SLEEP_INTERVAL = 1
 
     def __init__(self, app, socketio):
 
@@ -45,7 +47,8 @@ class Node(Thread):
             'last_end_block': None,
             'end_date': None,
             'last_end_date': None,
-            'reporting': {}
+            'phase': None,
+            'my_decisions': {}
         }
 
         self.markets = []
@@ -134,12 +137,15 @@ class Node(Thread):
 
                     # update reporting if needed
                     cycle_count = int(self.network_blockcount / self.REPORT_CYCLE)
+                    cycle_block_count = self.network_blockcount - (cycle_count * self.REPORT_CYCLE)
 
                     if cycle_count != self.cycle['count']:
 
                         old_cycle_count = self.cycle['count']
                         self.cycle['count'] = cycle_count
+
                         self.cycle['reported'] = False
+                        self.cycle['phase'] = 'reporting'
 
                         self.app.logger.debug("cycle %s" % self.cycle['count'])
 
@@ -156,8 +162,24 @@ class Node(Thread):
                             # collect reporting decisions
                             for d in self.decisions:
                                 if d['state'] == 'mature' and d['vote_id'] in self.my_account['branches'].keys():
-                                    self.cycle['reporting'][d['decision_id']] = d
+                                    self.cycle['my_decisions'][d['decision_id']] = d
                             
+                        self.socketio.emit('report', self.cycle, namespace='/socket.io/')
+
+                    elif cycle_block_count > 4410 and cycle_block_count < 4536:   # 7/8 to last 10th
+
+                        self.cycle['phase'] = None
+
+                        self.socketio.emit('report', self.cycle, namespace='/socket.io/')
+
+                    elif cycle_block_count >= 4536:   # last 10th
+
+                        self.cycle['phase'] = 'reveal'
+
+                        if cycle_block_count >= 4914:   # last 40th
+
+                            self.phase['phase'] = 'svd'
+
                         self.socketio.emit('report', self.cycle, namespace='/socket.io/')
 
 
