@@ -179,11 +179,11 @@ nav .cash {
     top: 3px;
     margin-left: 5px;
 }
-.alert {
+#alert {
+    padding: 10px;
     position: fixed;
     width: 100%;
     min-height: 40px;
-    background-color: #dadada;
     opacity: 0.8;
     bottom: 0;
     margin-bottom: 0px;
@@ -316,7 +316,10 @@ nav .cash {
 
     </footer>
 
-    <div class="alert"></div>
+    <div id="alert" class="alert alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <div></div>
+    </div>
 
     <!-- modals dialogs -->
 
@@ -594,6 +597,22 @@ nav .cash {
 
     ////
     // socket events
+
+    socket.on('alert', function (data) {
+
+        if (data) {
+            $('#alert').removeClass('alert-info').removeClass('alert-success').removeClass('alert-warning').removeClass('alert-danger');
+            $('#alert').addClass('alert-'+data['type']);
+
+            html = [];
+            _.each(data.messages, function(m) {
+                html.push(m);
+            });
+            $('#alert div').empty().html(html.join('<br>'));
+            $('#alert').show();
+        }
+    });
+
 
     socket.on('info', function (data) {
 

@@ -7,7 +7,6 @@ from subprocess import call, Popen
 from threading import Thread, Event
 
 # get elliptical signing function so we can create our own tx
-# TODO: have the API handle the make_PM command like everything else!
 import ecdsa
 
 ###
@@ -82,186 +81,6 @@ class Node(Thread):
 
         if wait_for_exit:
             self.join()
-
-    # main monitoring and update loop
-    # TODO: move this whole thread client-sde with a web worker.  the concern here should only be a light API wrapper.
-    def run(self):
-
-        while not self.exit_event.isSet():
-
-            now = datetime.datetime.now()
-
-            # check to see if the node is running, what the peers are and what the network blockcount is
-            peers = self.check_peers()
-
-            if peers:
-
-                blockcount = self.send({ 'command': ['blockcount'] })
-
-                # watch for block count change and update 
-                if int(blockcount) != self.blockcount:
-
-                    old_blockcount = self.blockcount
-                    self.blockcount = int(blockcount)
-
-                    # check blockchain status (current versus catching up)
-                    self.current = True if self.network_blockcount > self.blockcount else False
-
-                    self.socketio.emit('blockcount', self.blockcount, self.current, namespace='/socket.io/')
-
-                    # fetch and examine new blocks
-                    for n in range(old_blockcount+1, blockcount):
-
-                        block = self.send({ 'command': ['info', n ]})
-                        if block:
-                            summary = self.examine_block(block)
-
-                            if summary:
-                                self.socketio.emit('alert', {'type': 'info', 'message': summary}, namespace='/socket.io/')
-
-                    # update account info
-                    # TODO: be smarter and examine block (above) for account info changes
-                    data = self.send({ 'command': ['info', 'my_address'] })
-                    if data:
-
-                        self.my_account['tx_count'] = data.get('count', 1)
-                        self.my_account['cash'] = data.get('amount', 0)
-                        self.my_account['shares'] = data.get('shares', {})
-                        self.my_account['branches'] = data.get('votecoin', {})
-
-                        for branch in self.branches:
-                            if branch['vote_id'] in self.my_account['branches']:
-                                branch['my_rep'] = self.my_account['branches'][branch['vote_id']]
-
-                        self.socketio.emit('branches', self.branches, namespace='/socket.io/')
-                        self.socketio.emit('info', data, namespace='/socket.io/')
-
-                    # check for any mature decisions that are open and change state
-                    for decision in [ d for d in self.decisions if d['state'] == 'open' ]:
-                        if decision['maturation'] < self.network_blockcount:
-                            decision['state'] = 'mature'
-
-                    # update reporting if needed
-                    cycle_count = int(self.network_blockcount / self.REPORT_CYCLE)
-                    cycle_block_count = self.network_blockcount - (cycle_count * self.REPORT_CYCLE)
-
-                    if cycle_count != self.cycle['count']:
-
-                        old_cycle_count = self.cycle['count']
-                        self.cycle['count'] = cycle_count
-
-                        self.cycle['reported'] = False
-                        self.cycle['phase'] = 'reporting'
-
-                        self.app.logger.debug("cycle %s" % self.cycle['count'])
-
-                        self.cycle['end_block'] = cycle_count * self.REPORT_CYCLE
-                        self.cycle['end_date'] = now + datetime.timedelta(minutes=((self.network_blockcount + self.cycle['end_block']) * self.MINUTES_PER_BLOCK))
-                        self.app.logger.debug(self.cycle['end_date'])
-
-                        if cycle_count > 0:
-
-                            self.cycle['last_end_block'] = (cycle_count - 1) * self.REPORT_CYCLE
-                            self.cycle['last_end_date'] = now - datetime.timedelta(minutes=((self.network_blockcount - self.cycle['last_end_block']) * self.MINUTES_PER_BLOCK))
-                            self.app.logger.debug(self.cycle['last_end_date'])
-
-                            # collect reporting decisions
-                            for d in self.decisions:
-                                if d['state'] == 'mature' and d['vote_id'] in self.my_account['branches'].keys():
-                                    self.cycle['my_decisions'][d['decision_id']] = d
-                            
-                        self.socketio.emit('report', self.cycle, namespace='/socket.io/')
-
-                    elif cycle_block_count > 4410 and cycle_block_count < 4536:   # 7/8 to last 10th
-
-                        self.cycle['phase'] = None
-
-                        self.socketio.emit('report', self.cycle, namespace='/socket.io/')
-
-                    elif cycle_block_count >= 4536:   # last 10th
-
-                        self.cycle['phase'] = 'reveal'
-
-                        # reveal votes if reported
-                        if self.cycle.reported:
-
-                            for d in self.cycle['my_decisions']:
-
-                                data = self.send({'command': ['reveal_vote', d['vote_id'], d['decision_id']]})
-                                self.app.logger.debug(data)
-
-                        if cycle_block_count >= 4914:   # last 40th
-
-                            self.phase['phase'] = 'svd'
-
-                            # collect all branches voted on
-                            branches = []
-                            for d in self.cycle['my_decisions']:
-                                branch.append(d['vote_id'])
-
-                            # dedupe list and do SVD concensus on all voted branches
-                            for branch in list(set(branches)):
-
-                                data = self.send({'command': [' SVD_consensus', branch]})
-                                self.app.logger.debug(data)
-
-
-                        self.socketio.emit('report', self.cycle, namespace='/socket.io/')
-
-
-                # check if node just came up
-                if not self.running:
-
-                    self.starting = True
-                    self.socketio.emit('node-starting', namespace='/socket.io/')
-
-                    address = self.send({ 'command': ['my_address'] })
-                    if address:
-                        self.my_account['address'] = address
-
-                    privkey = self.send({ 'command': ['info', 'privkey'] })
-
-                    if privkey:
-
-                        self.my_account['privkey'] = str(privkey)
-                        self.my_account['pubkey'] = ecdsa.privkey_to_pubkey(privkey)
-
-                    self.socketio.emit('node-up', namespace='/socket.io/')
-
-                    self.running = True
-                    self.starting = False
-
-            else:
-
-                # check if node just went down
-                if self.running:
-                    self.socketio.emit('node-down', namespace='/socket.io/')
-                    self.running = False
-
-            time.sleep(self.SLEEP_INTERVAL)
-
-
-    def check_peers(self):
-
-        data = self.send({'command': ['peers']})
-
-        if data:
-            peers = {}
-            for peer in data:
-                address = "%s:%s" % (peer[0][0], peer[0][1])
-                if peers.get(address):
-                    if int(peer[3]) > peers[address]['blockcount']:
-                        peers[address]['blockcount'] = int(peer[3])
-                else:
-                    peers[address] = {'blockcount': int(peer[3]), 'id': peer[2]}
-                self.network_blockcount = int(peer[3]) if peer[3] > self.network_blockcount else self.network_blockcount
-                
-            # TODO: only update peers if they're different    
-            self.peers = peers
-            self.socketio.emit('peers', peers)
-
-            return peers
-
 
     @property
     def python_cmd(self):
@@ -415,6 +234,209 @@ class Node(Thread):
         return data
 
 
+    def det_hash(self, tx):
+
+        return hashlib.sha384(json.dumps(tx, sort_keys=True)).hexdigest()[0:64]
+
+
+    def trade_pow(self, tx):
+
+        tx = json.loads(json.dumps(tx))
+
+        h = self.det_hash(tx)
+
+        tx[u'nonce'] = random.randint(0, 10000000000000000000000000000000000000000)
+
+        a = 'F' * 64
+
+        while self.det_hash(a) > self.BUY_SHARES_TARGET:
+
+            tx[u'nonce'] += 1
+            a = {u'nonce': tx['nonce'], u'halfHash': h}
+
+        return tx
+
+    ###
+    # main monitoring and update loop
+    # TODO: move this whole thread client-side with a web worker.  the concern here should only be a light API wrapper.
+    def run(self):
+
+        while not self.exit_event.isSet():
+
+            now = datetime.datetime.now()
+
+            # check to see if the node is running, what the peers are and what the network blockcount is
+            peers = self.check_peers()
+
+            if peers:
+
+                blockcount = self.send({ 'command': ['blockcount'] })
+
+                # watch for block count change and update 
+                if int(blockcount) != self.blockcount:
+
+                    old_blockcount = self.blockcount
+                    self.blockcount = int(blockcount)
+
+                    # check blockchain status (current versus catching up)
+                    self.current = True if self.network_blockcount > self.blockcount else False
+
+                    self.socketio.emit('blockcount', self.blockcount, self.current, namespace='/socket.io/')
+
+                    # fetch and examine new blocks
+                    for n in range(old_blockcount+1, blockcount):
+
+                        block = self.send({ 'command': ['info', n ]})
+                        if block:
+                            summary = self.examine_block(block)
+
+                            if summary:
+                                self.socketio.emit('alert', {'type': 'info', 'messages': summary}, namespace='/socket.io/')
+
+                    # update account info
+                    # TODO: be smarter and examine block (above) for account info changes
+                    data = self.send({ 'command': ['info', 'my_address'] })
+                    if data:
+
+                        self.my_account['tx_count'] = data.get('count', 1)
+                        self.my_account['cash'] = data.get('amount', 0)
+                        self.my_account['shares'] = data.get('shares', {})
+                        self.my_account['branches'] = data.get('votecoin', {})
+
+                        for branch in self.branches:
+                            if branch['vote_id'] in self.my_account['branches']:
+                                branch['my_rep'] = self.my_account['branches'][branch['vote_id']]
+
+                        self.socketio.emit('branches', self.branches, namespace='/socket.io/')
+                        self.socketio.emit('info', data, namespace='/socket.io/')
+
+                    # check for any mature decisions that are open and change state
+                    for decision in [ d for d in self.decisions if d['state'] == 'open' ]:
+                        if decision['maturation'] < self.network_blockcount:
+                            decision['state'] = 'mature'
+
+                    # update reporting if needed
+                    cycle_count = int(self.network_blockcount / self.REPORT_CYCLE)
+                    cycle_block_count = self.network_blockcount - (cycle_count * self.REPORT_CYCLE)
+
+                    if cycle_count != self.cycle['count']:
+
+                        old_cycle_count = self.cycle['count']
+                        self.cycle['count'] = cycle_count
+
+                        self.cycle['reported'] = False
+                        self.cycle['phase'] = 'reporting'
+
+                        self.app.logger.debug("cycle %s" % self.cycle['count'])
+
+                        self.cycle['end_block'] = cycle_count * self.REPORT_CYCLE
+                        self.cycle['end_date'] = now + datetime.timedelta(minutes=((self.network_blockcount + self.cycle['end_block']) * self.MINUTES_PER_BLOCK))
+                        self.app.logger.debug(self.cycle['end_date'])
+
+                        if cycle_count > 0:
+
+                            self.cycle['last_end_block'] = (cycle_count - 1) * self.REPORT_CYCLE
+                            self.cycle['last_end_date'] = now - datetime.timedelta(minutes=((self.network_blockcount - self.cycle['last_end_block']) * self.MINUTES_PER_BLOCK))
+                            self.app.logger.debug(self.cycle['last_end_date'])
+
+                            # collect reporting decisions
+                            for d in self.decisions:
+                                if d['state'] == 'mature' and d['vote_id'] in self.my_account['branches'].keys():
+                                    self.cycle['my_decisions'][d['decision_id']] = d
+                            
+                        self.socketio.emit('report', self.cycle, namespace='/socket.io/')
+
+                    elif cycle_block_count > 4410 and cycle_block_count < 4536:   # 7/8 to last 10th
+
+                        self.cycle['phase'] = None
+
+                        self.socketio.emit('report', self.cycle, namespace='/socket.io/')
+
+                    elif cycle_block_count >= 4536:   # last 10th
+
+                        self.cycle['phase'] = 'reveal'
+
+                        # reveal votes if reported
+                        if self.cycle.reported:
+
+                            for d in self.cycle['my_decisions']:
+
+                                data = self.send({'command': ['reveal_vote', d['vote_id'], d['decision_id']]})
+                                self.app.logger.debug(data)
+
+                        if cycle_block_count >= 4914:   # last 40th
+
+                            self.phase['phase'] = 'svd'
+
+                            # collect all branches voted on
+                            branches = []
+                            for d in self.cycle['my_decisions']:
+                                branch.append(d['vote_id'])
+
+                            # dedupe list and do SVD concensus on all voted branches
+                            for branch in list(set(branches)):
+
+                                data = self.send({'command': [' SVD_consensus', branch]})
+                                self.app.logger.debug(data)
+
+
+                        self.socketio.emit('report', self.cycle, namespace='/socket.io/')
+
+
+                # check if node just came up
+                if not self.running:
+
+                    self.starting = True
+                    self.socketio.emit('node-starting', namespace='/socket.io/')
+
+                    address = self.send({ 'command': ['my_address'] })
+                    if address:
+                        self.my_account['address'] = address
+
+                    privkey = self.send({ 'command': ['info', 'privkey'] })
+
+                    if privkey:
+
+                        self.my_account['privkey'] = str(privkey)
+                        self.my_account['pubkey'] = ecdsa.privkey_to_pubkey(privkey)
+
+                    self.socketio.emit('node-up', namespace='/socket.io/')
+
+                    self.running = True
+                    self.starting = False
+
+            else:
+
+                # check if node just went down
+                if self.running:
+                    self.socketio.emit('node-down', namespace='/socket.io/')
+                    self.running = False
+
+            time.sleep(self.SLEEP_INTERVAL)
+
+
+    def check_peers(self):
+
+        data = self.send({'command': ['peers']})
+
+        if data:
+            peers = {}
+            for peer in data:
+                address = "%s:%s" % (peer[0][0], peer[0][1])
+                if peers.get(address):
+                    if int(peer[3]) > peers[address]['blockcount']:
+                        peers[address]['blockcount'] = int(peer[3])
+                else:
+                    peers[address] = {'blockcount': int(peer[3]), 'id': peer[2]}
+                self.network_blockcount = int(peer[3]) if peer[3] > self.network_blockcount else self.network_blockcount
+                
+            # TODO: only update peers if they're different    
+            self.peers = peers
+            self.socketio.emit('peers', peers)
+
+            return peers
+
+
     def examine_block(self, block):
 
         if block and block.get('txs'):
@@ -480,29 +502,6 @@ class Node(Thread):
             market = self.send({'command':['info', id]})
 
             return market
-
-
-    def det_hash(self, tx):
-
-        return hashlib.sha384(json.dumps(tx, sort_keys=True)).hexdigest()[0:64]
-
-
-    def trade_pow(self, tx):
-
-        tx = json.loads(json.dumps(tx))
-
-        h = self.det_hash(tx)
-
-        tx[u'nonce'] = random.randint(0, 10000000000000000000000000000000000000000)
-
-        a = 'F' * 64
-
-        while self.det_hash(a) > self.BUY_SHARES_TARGET:
-
-            tx[u'nonce'] += 1
-            a = {u'nonce': tx['nonce'], u'halfHash': h}
-
-        return tx
 
 
     def get_cost_per_share(self, tx):
