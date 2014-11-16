@@ -261,7 +261,7 @@ nav .cash {
                 
                 <div class="reporting">
                     <h3 class="clearfix"></h3>
-                    <form method='POST' class="clearfix" id="report">
+                    <form method='POST' class="clearfix" id="report" style="display: none;">
                         <ul class="list-group" id="report-decisions"></ul>
                         <script type="text/template" id="report-template">
                             <li class="list-group-item">
@@ -579,14 +579,16 @@ nav .cash {
 
         augur.cycle = cycle;
 
-        if (!$.isEmptyObject(cycle.reporting)) {
+        if (!$.isEmptyObject(cycle.decisions)) {
+
+            $('#report').show();
 
             $('.reporting h3').html('Reporting <span class="pull-right">Cycle ending ' + formatDate(cycle.last_end_date) + '</span>');
 
-            if (cycle.reported) {
+            if (cycle.reported && !cycle.phase) {
                 $('.reporting').addClass('reported');
                 $('#reveal-button').attr('disabled', 'true');
-            } else {
+            } else if (cycle.phase == 'reporting') {
                 $('.reporting').removeClass('reported');
                 $('#reveal-button').removeAttr('disabled');
             }
@@ -599,6 +601,8 @@ nav .cash {
             });
 
         } else {
+
+            $('#report').hide();
 
             $('.reporting h3').html('Cycle ending ' + formatDate(cycle.end_date));
         }
