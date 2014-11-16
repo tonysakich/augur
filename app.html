@@ -499,6 +499,34 @@ nav .cash {
         </div>
     </div>
 
+    <div id="node-options-modal" class="modal fade">
+        <div class="modal-dialog model-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4>Node options</h4>
+                </div>
+                <div class="modal-body clearfix">
+                    <form role="form">
+                        <div class="form-group">
+                            <label for="node-address">Address or IP</label>
+                            <input type="text" class="form-control" id="node-address">
+                        </div>
+                        <div class="form-group">
+                            <label for="node-port">Port</label>
+                            <input type="text" class="form-control" id="node-port">
+                        </div>
+                        <div class="form-group">
+                            <label for="core-path">Path to augur core (required for start/stop only)</label>
+                            <input type="text" class="form-control" id="core-path">
+                        </div>
+                        <button class="btn btn-default pull-right">CANCEL</button>
+                        <button type="submit" class="btn btn-primary pull-right">SAVE</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="explore-modal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -560,7 +588,7 @@ nav .cash {
         var apm = d.getHours() > 10 || d.getHours() == 23 && d.getHours() != 0 ? 'pm' : 'am';
         var minutes = d.getMinutes() < 10 ? '0'+ d.getMinutes() : d.getMinutes();
   
-        return months[d.getDay()]+' '+d.getDate()+', '+d.getFullYear()+' / '+hour+':'+minutes+' '+apm;
+        return months[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear()+' / '+hour+':'+minutes+' '+apm;
     }
 
 

@@ -25,13 +25,19 @@ class Node(Thread):
     # node settings
     PORT = 8899
     HOST = 'localhost'
-    TRUTHCOIN_PATH = '../Truthcoin-POW'
+    CORE_PATH = '../Truthcoin-POW'
 
     def __init__(self, app, socketio):
 
         self.exit_event = Event()
         self.app = app
         self.socketio = socketio
+
+        self.settings = {
+            'host': self.HOST,
+            'port': self.PORT,
+            'core_path': self.CORE_PATH
+        }
 
         self.running = False
         self.starting = False
@@ -176,6 +182,14 @@ class Node(Thread):
 
                         self.cycle['phase'] = 'reveal'
 
+                        # reveal votes if reported
+                        if self.cycle.reported:
+                            
+                            for d in self.cycle['my_decisions']:
+
+                                data = self.send({'command': ['reveal_vote', d['vote_id'], d['decision_id']]})
+                                self.app.logger.debug(data)
+
                         if cycle_block_count >= 4914:   # last 40th
 
                             self.phase['phase'] = 'svd'
@@ -249,12 +263,12 @@ class Node(Thread):
 
     def start_node(self, password):
 
-        cmd = os.path.join(self.TRUTHCOIN_PATH, 'threads.py')
+        cmd = os.path.join(self.settings['core_path'], 'threads.py')
         Popen([self.python_cmd, cmd, password])
 
     def stop_node(self):
 
-        cmd = os.path.join(self.TRUTHCOIN_PATH, 'truth_cli.py')
+        cmd = os.path.join(self.settings['core_path'], 'truth_cli.py')
         status = call([self.python_cmd, cmd, 'stop'])
 
         self.running = False
@@ -265,9 +279,9 @@ class Node(Thread):
         s.setblocking(5)
 
         try:
-            s.connect((self.HOST, self.PORT))
+            s.connect((self.settings['host'], self.settings['port']))
         except:
-            return {'error': 'cannot connect host:' + str(self.HOST) + ' port:' + str(self.PORT)}
+            return {'error': 'cannot connect host:' + str(self.settings['host']) + ' port:' + str(self.settings['port'])}
 
         return s
 
