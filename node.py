@@ -184,7 +184,7 @@ class Node(Thread):
 
                         # reveal votes if reported
                         if self.cycle.reported:
-                            
+
                             for d in self.cycle['my_decisions']:
 
                                 data = self.send({'command': ['reveal_vote', d['vote_id'], d['decision_id']]})
@@ -193,6 +193,18 @@ class Node(Thread):
                         if cycle_block_count >= 4914:   # last 40th
 
                             self.phase['phase'] = 'svd'
+
+                            # collect all branches voted on
+                            branches = []
+                            for d in self.cycle['my_decisions']:
+                                branch.append(d['vote_id'])
+
+                            # dedupe list and do SVD concensus on all voted branches
+                            for branch in list(set(branches)):
+
+                                data = self.send({'command': [' SVD_consensus', branch]})
+                                self.app.logger.debug(data)
+
 
                         self.socketio.emit('report', self.cycle, namespace='/socket.io/')
 
