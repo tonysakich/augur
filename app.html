@@ -30,11 +30,17 @@ h1, h2, h3, h4, h5 {
     font-family: 'Roboto', sans-serif;
     font-weight: 200;
 }
-
-h4 a,
-h4 span,
+h3 {
+    margin: 5px 0px 10px 0px;
+}
 h3 span {
     font-size: 14px;
+    margin-top: 10px;
+}
+h4 a,
+h4 span {
+    font-size: 14px;
+    margin-top: 3px;
 }
 table {
     font-size: 12px;
@@ -60,9 +66,6 @@ nav .cash {
     margin-top: 7px;
 }
 
-.dash h3 {
-    margin: 8px 0px 38px 0px;
-}
 .sidebar .panel {
     font-size: 12px;
 }
@@ -122,15 +125,58 @@ nav .cash {
     display: none;
     margin-bottom: 30px;
 }
+.reporting #report-decisions {
+    margin-bottom: 0px;
+}
+.reporting #report-decisions li {
+    background-color: rgb(255, 255, 228);
+}
+.reporting #report-decisions li:last-child {
+    border-bottom-right-radius: 0; 
+}
+.reporting p {
+    font-size: 16px;
+}
+.reporting button[type=submit] {
+    position: relative;
+    top: -1px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+.reporting #reveal-report {
+    display: none;
+}
+.reporting .my-choice {
+    display: none;
+    font-weight: bold;
+    margin-bottom: 0px;
+}
+.reporting.reported #report-button {
+    display: none;
+}
+.reporting.reported #reveal-button {
+    display: inline-block;
+}
+.reporting.reported .my-choice {
+    display: block;
+}
+.reporting.reported label {
+    display: none;
+}
+
 .spin {
     display: inline-block;
-    margin-left: 5px;
     -webkit-transform-origin: 47% 50%;
     transform-origin: 47% 50%;
     -webkit-animation: spin 1s infinite linear;
     -moz-animation: spin 1s infinite linear;
     -o-animation: spin 1s infinite linear;
     animation: spin 1s infinite linear;
+}
+.nav button span {
+    position: relative;
+    top: 3px;
+    margin-left: 5px;
 }
 .alert {
     position: fixed;
@@ -154,7 +200,7 @@ nav .cash {
             </div>
             <ul class="nav navbar-nav navbar-right">
                 <li class="dropdown node-stopped">
-                    <button class="btn btn-danger" data-toggle="dropdown">Node stopped&nbsp;<span class="caret"></span></button>
+                    <button class="btn btn-danger" data-toggle="dropdown">Node stopped <span class="glyphicon glyphicon-cog"></span></button>
                     <ul class="dropdown-menu" role="menu">
                         <li><a href="#password-modal" data-toggle="modal">Start node</a></li>
                     </ul>
@@ -166,7 +212,7 @@ nav .cash {
                     </ul>
                 </li>
                 <li class="dropdown node-running" style="display:none;">
-                    <button class="btn btn-success" data-toggle="dropdown">Node running&nbsp;<span class="caret"></span></button>
+                    <button class="btn btn-success" data-toggle="dropdown">Node running <span class="glyphicon glyphicon-cog"></span></button>
                     <ul class="dropdown-menu" role="menu">
                         <li><a href="#" id="stop-node">Stop node</a></li>
                     </ul>
@@ -214,8 +260,25 @@ nav .cash {
                 
                 <div class="reporting">
                     <h3 class="clearfix"></h3>
-
+                    <form method='POST' class="clearfix">
+                        <ul class="list-group" id="report-decisions"></ul>
+                        <script type="text/template" id="report-template">
+                            <li class="list-group-item">
+                                <p><%= d.txt %></p>
+                                <label class="radio-inline"><input type="radio" name="<%= d.decision_id %>" value='yes'>True</label>
+                                <label class="radio-inline"><input type="radio" name="<%= d.decision_id %>" value='no'>False</label>
+                                <label class="radio-inline"><input type="radio" name="<%= d.decision_id %>" value='unknown'>
+                                    Ambiguous or Indeterminent
+                                </label>
+                                <p class="my-choice"><%= d.my_choice %></p>
+                            </li>
+                        </script>
+                        <button type="submit" class="btn btn-primary pull-right" id="report-button">SUBMIT REPORT</button>
+                        <button type="submit" class="btn btn-success pull-right" id="reveal-button">REVEAL REPORT</button>
+                        <p id="error" class="hidden pull-right"></p>
+                    </form>
                 </div>
+                    
 
                 <h4 class="clearfix">Markets <a href="#add-market-modal" data-toggle="modal" class="pull-right">Add a market</a></h4>
                 <table class="table table-striped">
@@ -473,9 +536,19 @@ nav .cash {
     ////
     // local data
 
+    var augur = {
+
+        socket: io.connect(window.location.protocol + '//' + document.domain + ':' + location.port + '/socket.io/'),
+        markets: {},
+        branches: {},
+        decisions: {},
+        cycle: {}
+    }
+
     var socket = io.connect(window.location.protocol + '//' + document.domain + ':' + location.port + '/socket.io/');
-    var _market = {}
-    var _branch = {}
+    var _market = {};
+    var _branch = {};
+    var _decision = {};
 
     function formatDate(date) {
 
@@ -501,17 +574,32 @@ nav .cash {
     });
 
 
-    socket.on('report', function (cycle_end, last_cycle_end, decisions) {
+    socket.on('report', function (cycle) {
 
-        formatDate(cycle_end);
+        augur.cycle = cycle;
 
-        if (decisions.length) {
+        if (cycle.reporting) {
 
-            $('.reporting h3').html('Reporting <span class="pull-right">Cycle ending ' + formatDate(last_cycle_end) + '</span>');
+            $('.reporting h3').html('Reporting <span class="pull-right">Cycle ending ' + formatDate(cycle.last_end_date) + '</span>');
+
+            if (cycle.reported) {
+                $('.reporting').addClass('reported');
+                $('#reveal-button').attr('disabled', 'true');
+            } else {
+                $('.reporting').removeClass('reported');
+                $('#reveal-button').removeAttr('disabled');
+            }
+
+            $('#report-decisions').empty();
+
+            var template = _.template($("#report-template").html());
+            _.each(cycle.reporting, function(d, id) {
+                $('#report-decisions').append(template({'d': d}));
+            });
 
         } else {
 
-            $('.reporting h3').html('Cycle ending ' + cycle_end);
+            $('.reporting h3').html('Cycle ending ' + formatDate(cycle.end_date));
         }
         $('.reporting').show()
     });
@@ -528,8 +616,7 @@ nav .cash {
 
             _.each(branches, function(branch) {
 
-                // update local branches
-                _branch[branch['vote_id']] = branch;
+                _branch[branch['vote_id']] = branch;   // update local branches
 
                 // update add decision modal
                 $('#decision-branch').append($('<option>').val(branch.vote_id).text(branch.vote_id));
@@ -621,6 +708,7 @@ nav .cash {
         if (decisions.length) {
             $('.decisions').empty();
             $.each(decisions, function(i, d) {
+                _decision[d.decision_id] = d;   // update local decision
                 $('.decisions').append('<tr><td>'+d.txt+'</td><td>'+d.decision_id+'</td><td>'+d.vote_id+'</td><td>'+formatDate(d.maturation_date)+'</td></tr>');
             });
         }
@@ -631,8 +719,7 @@ nav .cash {
             $('.markets').empty();
             $.each(markets, function(i, m) {
 
-                // update local markets
-                _market[m['PM_id']] = m;
+                _market[m['PM_id']] = m;   // update local markets
 
                 var states = $('<select>').addClass('states, form-control').attr('name', 'market-state');
                 _.each(m['states'], function(state) {
@@ -700,6 +787,21 @@ nav .cash {
         $('.node-starting').show();
         $('#password-modal').modal('hide');
     }); 
+
+
+    $('.reporting form').on('submit', function(event) {
+
+        event.preventDefault();
+
+        var results = $(this).serializeArray();
+
+        _.each(results, function(r, i) {
+            results[i]['branch'] = _decision[r.name].vote_id;
+        });
+
+        socket.emit('report', results);
+    }); 
+
 
     $('#create-branch-modal form').on('submit', function(event) {
 

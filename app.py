@@ -56,7 +56,23 @@ def blockcount():
 @socketio.on('reporting', namespace='/socket.io/')
 def reporting():
 
-    emit('report', node.cycle['end_date'], node.cycle['last_end_date'], node.cycle['reporting'], namespace='/socket.io/')
+    emit('report', node.cycle, namespace='/socket.io/')
+
+
+@socketio.on('report', namespace='/socket.io/')
+def report(report):
+
+    for d in report:
+
+        data = node.send({ 'command': ['vote_on_decision', d['branch'], d['name'], d['value']] })
+        app.logger.debug(data)
+
+        node.cycle['reporting'][d['name']]['my_choice'] = d['value']
+
+    # flag account as reported
+    node.cycle['reported'] = True
+
+    emit('report', node.cycle, namespace='/socket.io/')
 
 
 @socketio.on('my_address', namespace='/socket.io/')
@@ -158,7 +174,7 @@ def add_decision(args):
     #block = node.blockcount + (1440 / node.MINUTES_PER_BLOCK) * int(args['decisionTime'])
     block = node.blockcount + 20 
 
-    data = node.send({ 'command':['ask_decision', args['branchId'], block, args['decisionId'], '"'+args['decisionText']+'"'] })
+    data = node.send({ 'command':['ask_decision', args['branchId'], block, args['decisionId'], args['decisionText']] })
     app.logger.debug(data)
 
 

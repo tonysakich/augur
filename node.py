@@ -18,7 +18,7 @@ class Node(Thread):
     BUY_SHARES_TARGET = '0' * 3 + '1' + '9' * 60
     MAX_MESSAGE_SIZE = 60000
     MINUTES_PER_BLOCK = 2
-    REPORT_CYCLE = 10    # in blocks (one week)
+    REPORT_CYCLE = 5040    # in blocks (one week)
 
     PORT = 8899
     HOST = 'localhost'
@@ -45,7 +45,7 @@ class Node(Thread):
             'last_end_block': None,
             'end_date': None,
             'last_end_date': None,
-            'reporting': []
+            'reporting': {}
         }
 
         self.markets = []
@@ -75,6 +75,7 @@ class Node(Thread):
             self.join()
 
     # main monitoring and update loop
+    # TODO: move this whole thread client-sde with a web worker.  the concern here should only be a light API wrapper.
     def run(self):
 
         while not self.exit_event.isSet():
@@ -138,6 +139,8 @@ class Node(Thread):
 
                         old_cycle_count = self.cycle['count']
                         self.cycle['count'] = cycle_count
+                        self.cycle['reported'] = False
+
                         self.app.logger.debug("cycle %s" % self.cycle['count'])
 
                         self.cycle['end_block'] = cycle_count * self.REPORT_CYCLE
@@ -151,12 +154,11 @@ class Node(Thread):
                             self.app.logger.debug(self.cycle['last_end_date'])
 
                             # collect reporting decisions
-                            self.cycle['reporting'] = []
                             for d in self.decisions:
                                 if d['state'] == 'mature' and d['vote_id'] in self.my_account['branches'].keys():
-                                    self.cycle['reporting'].append(d)
+                                    self.cycle['reporting'][d['decision_id']] = d
                             
-                        self.socketio.emit('report', self.cycle['end_date'], self.cycle['last_end_date'], self.cycle['reporting'], namespace='/socket.io/')
+                        self.socketio.emit('report', self.cycle, namespace='/socket.io/')
 
 
                 # check if node just came up
