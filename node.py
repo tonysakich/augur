@@ -18,8 +18,8 @@ class Node(Thread):
     MAX_MESSAGE_SIZE = 60000
 
     BUY_SHARES_TARGET = '0' * 3 + '1' + '9' * 60
-    MINUTES_PER_BLOCK = 2
-    REPORT_CYCLE = 5040    # in blocks (one week)
+    MINUTES_PER_BLOCK = 1
+    REPORT_CYCLE = 40    # in blocks (one week)
 
     # node settings
     PORT = 8899
@@ -36,6 +36,10 @@ class Node(Thread):
             'host': self.HOST,
             'port': self.PORT,
             'core_path': self.CORE_PATH
+        }
+
+        self.fees = {
+            'create_branch': 10000
         }
 
         self.running = False
@@ -263,7 +267,7 @@ class Node(Thread):
 
         while not self.exit_event.isSet():
 
-            now = datetime.datetime.now()
+            now = datetime.datetime.utcnow()
 
             # check to see if the node is running, what the peers are and what the network blockcount is
             peers = self.check_peers()
@@ -319,25 +323,26 @@ class Node(Thread):
                     cycle_count = int(self.network_blockcount / self.REPORT_CYCLE)
                     cycle_block_count = self.network_blockcount - (cycle_count * self.REPORT_CYCLE)
 
+                   
                     if cycle_count != self.cycle['count']:
 
                         old_cycle_count = self.cycle['count']
                         self.cycle['count'] = cycle_count
 
                         self.cycle['reported'] = False
+
                         self.cycle['phase'] = 'reporting'
 
                         self.app.logger.debug("cycle %s" % self.cycle['count'])
 
-                        self.cycle['end_block'] = cycle_count * self.REPORT_CYCLE
-                        self.cycle['end_date'] = now + datetime.timedelta(minutes=((self.network_blockcount + self.cycle['end_block']) * self.MINUTES_PER_BLOCK))
-                        self.app.logger.debug(self.cycle['end_date'])
+                        self.cycle['end_block'] = (cycle_count + 1) * self.REPORT_CYCLE
+                        blocks_from_now = self.cycle['end_block'] - self.network_blockcount
+                        self.cycle['end_date'] = now + datetime.timedelta(minutes=blocks_from_now * self.MINUTES_PER_BLOCK)
 
                         if cycle_count > 0:
 
-                            self.cycle['last_end_block'] = (cycle_count - 1) * self.REPORT_CYCLE
+                            self.cycle['last_end_block'] = cycle_count * self.REPORT_CYCLE
                             self.cycle['last_end_date'] = now - datetime.timedelta(minutes=((self.network_blockcount - self.cycle['last_end_block']) * self.MINUTES_PER_BLOCK))
-                            self.app.logger.debug(self.cycle['last_end_date'])
 
                             # collect reporting decisions
                             for d in self.decisions:
@@ -346,39 +351,34 @@ class Node(Thread):
                             
                         self.socketio.emit('report', self.cycle, namespace='/socket.io/')
 
-                    elif cycle_block_count > 4410 and cycle_block_count < 4536:   # 7/8 to last 10th
-
-                        self.cycle['phase'] = None
-
-                        self.socketio.emit('report', self.cycle, namespace='/socket.io/')
-
-                    elif cycle_block_count >= 4536:   # last 10th
+                    elif cycle_block_count > (self.REPORT_CYCLE * 0.875) and cycle_block_count < (self.REPORT_CYCLE * 0.975) and self.cycle['phase'] != 'reveal':   
 
                         self.cycle['phase'] = 'reveal'
 
                         # reveal votes if reported
-                        if self.cycle.reported:
+                        if self.cycle['reported']:
 
                             for d in self.cycle['my_decisions']:
 
                                 data = self.send({'command': ['reveal_vote', d['vote_id'], d['decision_id']]})
                                 self.app.logger.debug(data)
 
-                        if cycle_block_count >= 4914:   # last 40th
+                        self.socketio.emit('report', self.cycle, namespace='/socket.io/')
 
-                            self.phase['phase'] = 'svd'
+                    elif cycle_block_count >= 4914 and self.cycle['phase'] != 'svd':  # SVD
 
-                            # collect all branches voted on
-                            branches = []
-                            for d in self.cycle['my_decisions']:
-                                branch.append(d['vote_id'])
+                        self.phase['phase'] = 'svd'
 
-                            # dedupe list and do SVD concensus on all voted branches
-                            for branch in list(set(branches)):
+                        # collect all branches voted on
+                        branches = []
+                        for d in self.cycle['my_decisions']:
+                            branch.append(d['vote_id'])
 
-                                data = self.send({'command': [' SVD_consensus', branch]})
-                                self.app.logger.debug(data)
+                        # dedupe list and do SVD concensus on all voted branches
+                        for branch in list(set(branches)):
 
+                            data = self.send({'command': [' SVD_consensus', branch]})
+                            self.app.logger.debug(data)
 
                         self.socketio.emit('report', self.cycle, namespace='/socket.io/')
 
@@ -451,7 +451,7 @@ class Node(Thread):
                     
                     block_delta = tx['maturation'] - self.network_blockcount
                     minutes = int(block_delta / 2)   # assumes 2 minutes per block
-                    date = datetime.datetime.now() + datetime.timedelta(minutes=minutes)
+                    date = datetime.datetime.utcnow() + datetime.timedelta(minutes=minutes)
                     tx['maturation_date'] = date
 
                     if tx['maturation'] > self.network_blockcount:

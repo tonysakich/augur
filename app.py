@@ -9,6 +9,7 @@ import json, datetime, sys, os, socket, time, re, pprint, ast
 from flask import Flask, session, request, escape, url_for, redirect, render_template, g, abort
 from flask.ext.socketio import SocketIO, emit, send
 
+from multiprocessing import Process
 from werkzeug import secure_filename
 from node import Node
 
@@ -171,10 +172,23 @@ def create_branch(name):
 def add_decision(args):
 
     # calulate maturation block from days 
-    #block = node.blockcount + (1440 / node.MINUTES_PER_BLOCK) * int(args['decisionTime'])
-    block = node.blockcount + 20 
+    block = node.network_blockcount + 40
 
     data = node.send({ 'command':['ask_decision', args['branchId'], block, args['decisionId'], args['decisionText']] })
+    app.logger.debug(data)
+
+    tx = {
+        "B": args['marketInv'],
+        "PM_id": "%s-market" % args['decisionId'],
+        "decisions": args['decisionId'],
+        "fees": 0,
+        "owner": node.my_account['address'],
+        "states": ['yes', 'no'],
+        "states_combinatory": 1,
+        "type": "prediction_market",
+    }
+
+    data = node.send({'command': ['pushtx', tx]})
     app.logger.debug(data)
 
 
@@ -233,6 +247,72 @@ def add_market(args):
     app.logger.debug(data)
 
 
+@socketio.on('ping', namespace='/socket.io/')
+def ping():
+
+    data = node.send({ 'command': ['peers'] })
+
+    if data:
+        app.logger.debug(data)
+
+        peers = {}
+        for peer in data:
+            address = "%s:%s" % (peer[0][0], peer[0][1])
+            if peers.get(address):
+                if int(peer[3]) > peers[address]['blockcount']:
+                    peers[address]['blockcount'] = int(peer[3])
+            else:
+                peers[address] = {'blockcount': int(peer[3]), 'id': peer[2]}
+            
+        emit('peers', peers)
+
+    data = node.send({ 'command': ['blockcount'] })
+
+    if data:
+        app.logger.debug(data)
+        
+        emit('blockcount', int(data))
+
+
+
+# general putpose socket
+@socketio.on('command', namespace='/socket.io/')
+def command(args):
+
+    data = node.send({ 'command': args })
+
+    if data:
+
+        app.logger.debug(data)
+
+        if args[0] == 'peers':
+
+            peers = {}
+            for peer in data:
+                address = "%s:%s" % (peer[0][0], peer[0][1])
+                if peers.get(address):
+                    if int(peer[3]) > peers[address]['blockcount']:
+                        peers[address]['blockcount'] = int(peer[3])
+                else:
+                    peers[address] = {'blockcount': int(peer[3]), 'id': peer[2]}
+                
+            emit('peers', peers)
+
+        elif args[0] == 'blockcount':
+
+           emit('blockcount', int(data))
+
+        elif args[0] == 'mine':
+
+            if re.match('miner on', data) or re.match('miner is currently: on', data):
+                emit('miner', 'on')
+            elif re.match('miner is now turned off', data) or re.match('miner is currently: off', data):
+                emit('miner', 'off')
+            else:
+                emit('miner', 'error')
+
+
+
 ###
 # main
 
@@ -241,7 +321,8 @@ if __name__ == '__main__':
     from gevent.event import Event
     stopper = Event()
 
-    socketio.run(app, host='127.0.0.1', port=9000)
+    server = Process(target=socketio.run(app, host='127.0.0.1', port=9000))
+    server.start()
 
     print "stopping..."
 

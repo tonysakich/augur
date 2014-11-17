@@ -279,26 +279,13 @@ nav .cash {
                         <p id="error" class="hidden pull-right"></p>
                     </form>
                 </div>
-                    
-
-                <h4 class="clearfix">Markets <a href="#add-market-modal" data-toggle="modal" class="pull-right">Add a market</a></h4>
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>ID</th><th>Decisions</th><th>Fees</th><th>Shares</th><th>Purchased</th><th></th>
-                        <tr>
-                    </thead>
-                    <tbody class="markets"></tbody>
-                </table>
-
-                <br>
 
                 <h4 class="clearfix">Decisions <a href="#add-decision-modal" data-toggle="modal" class="pull-right">Add decision</a>
                 </h4>
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>Description</th><th>ID</th><th>Branch</th><th>Matures</th>
+                            <th>Description</th><th>Branch</th><th>Matures</th><th>Trade</th>
                         <tr>
                     </thead>
                     <tbody class="decisions"></tbody>
@@ -441,6 +428,7 @@ nav .cash {
             <div class="modal-content">
                 <div class="modal-header">
                     <h4>Add decision</h4>
+                    <i>Decisions must be a true or false question</i>
                 </div>
                 <div class="modal-body clearfix">
                     <form role="form">
@@ -460,40 +448,9 @@ nav .cash {
                             <label for="decision-date">Days to maturation</label>
                             <input type="text" class="form-control" id="decision-time" placeholder="Enter number of days when decision matures">
                         </div>
-                        <button type="submit" class="btn btn-primary pull-right">Submit decision</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="add-market-modal" class="modal fade">
-        <div class="modal-dialog model-sm">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4>Add a market</h4>
-                </div>
-                <div class="modal-body clearfix">
-                    <form role="form">
-                        <div class="form-group">
-                            <label for="market-id">Market ID</label>
-                            <input type="text" class="form-control" id="market-id" placeholder="Enter a market ID">
-                        </div>
                         <div class="form-group">
                             <label for="market-investment">Initial Investment (B)</label>
                             <input type="text" class="form-control" id="market-investment" placeholder="Enter you initial investment in cash">
-                        </div>
-                        <div class="form-group">
-                            <label for="market-decisions">Market Decisions</label>
-                            <input type="text" class="form-control" id="market-decisions" placeholder="Enter a comma seperated list of decision IDs">
-                        </div>
-                        <div class="form-group">
-                            <label for="market-states">Market States</label>
-                            <input type="text" class="form-control" id="market-states" placeholder="Enter a comma seperated list of states">
-                        </div>
-                        <div class="form-group">
-                            <label for="market-dep">State Dependency</label>
-                            <input type="text" class="form-control" id="market-dep" placeholder="">
                         </div>
                         <button type="submit" class="btn btn-primary pull-right">Submit decision</button>
                     </form>
@@ -562,6 +519,94 @@ nav .cash {
         </div>
     </div>
 
+<script id="nodeMonitor" type="javascript/worker">
+
+    console.log('starting node monitor...');
+
+    importScripts("http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js");
+    importScripts("http://cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js");
+
+    socket = io.connect(location.origin + '/socket.io/')
+
+    SECONDS_PER_BLOCK = 60;
+
+    blockcount = 0;
+    network_blockcount = 0;
+    blocks = {};
+
+    var augur = {
+        decisions: {},
+        branches: {},
+        markets: {}
+    }
+
+    socket.on('blockcount-new', function (count) {
+
+        if (blockcount != count) {
+
+            prev_blockcount = blockcount;
+            blockcount = count;
+            self.postMessage({'blockcount': count});
+
+            // examine new blocks
+            for (i = prev_blockcount + 1; i <= blockcount; i++) { 
+                socket.emit('get-block', i);
+            }
+        }
+    });
+
+    socket.on('load-block', function (block) {
+ 
+        if (block && block['txs']) {
+
+            _.each(block['txs'], function(tx) {
+
+                var text;
+
+                if (tx['type'] == 'propose_decision') {
+
+                    tx['state'] = x['maturation'] > network_blockcount ? 'open' : 'mature';
+                    augur.decisions[tx['decision_id']] = tx;
+
+                    text = 'New decision added: ' + tx['txt'] + ' (' + tx['decision_id'] + ')';
+
+                } else if (tx['type'] == 'prediction_market') {
+
+                    augur.markets[tx['PM_id']] = tx;
+
+                    text = 'New market added: ' + tx['PM_id'];
+
+                } else if (tx['type'] == 'create_jury') {
+
+                    augur.branches['vote_id'] = tx;
+
+                    text = 'New branch added: ' + tx['vote_id'];
+
+                } else if (tx['type'] == 'spend') {
+
+                    sender = 'unknown'
+                    if (tx.vote_id) {
+                        text = sender + ' sent ' + tx['amount'] + ' ' + tx['vote_id'] + ' reputation to ' + tx['to'];
+                    } else {
+                        text = sender + ' sent ' + tx['amount'] + ' cash to ' + tx['to'];
+                    }
+
+                }
+
+                if (text) self.postMessage({'alert': {'type': 'info', 'message': text}});
+            });
+        }      
+    });
+
+    socket.on('peers', function (peers) {
+        
+    });
+
+    // start pinging node for updates
+    //setInterval(function() { socket.emit('ping') }, 1000);
+
+</script>
+
 <script>
 (function () {
 
@@ -570,24 +615,27 @@ nav .cash {
 
     var augur = {
 
-        socket: io.connect(window.location.protocol + '//' + document.domain + ':' + location.port + '/socket.io/'),
         markets: {},
         branches: {},
         decisions: {},
         cycle: {}
     }
 
-    var socket = io.connect(window.location.protocol + '//' + document.domain + ':' + location.port + '/socket.io/');
+    var socket = io.connect(location.origin + '/socket.io/');
+
     var _market = {};
     var _branch = {};
     var _decision = {};
 
     function formatDate(date) {
 
+        console.log(date);
+
         months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Oct','Sep','Nov','Dec'];
         d = new Date(date);
 
-        var hour = d.getHours() > 11  ? d.getHours() - 11 : d.getHours() + 1;
+        console.log(d);
+        var hour = d.getHours() > 11  ? d.getHours() - 12 : d.getHours();
         var apm = d.getHours() > 10 || d.getHours() == 23 && d.getHours() != 0 ? 'pm' : 'am';
         var minutes = d.getMinutes() < 10 ? '0'+ d.getMinutes() : d.getMinutes();
   
@@ -757,27 +805,26 @@ nav .cash {
     });
 
     socket.on('decisions', function (decisions) {
-        if (decisions.length) {
-            $('.decisions').empty();
+        if (decisions.length) {  
             $.each(decisions, function(i, d) {
                 _decision[d.decision_id] = d;   // update local decision
-                $('.decisions').append('<tr><td>'+d.txt+'</td><td>'+d.decision_id+'</td><td>'+d.vote_id+'</td><td>'+formatDate(d.maturation_date)+'</td></tr>');
             });
         }
     });
 
     socket.on('markets', function (markets) {
         if (markets.length) {
-            $('.markets').empty();
+            $('.decisions').empty();
             $.each(markets, function(i, m) {
 
                 _market[m['PM_id']] = m;   // update local markets
+                var d = _decision[m['decisions'][0]];
 
                 var states = $('<select>').addClass('states, form-control').attr('name', 'market-state');
                 _.each(m['states'], function(state) {
                     states.append($('<option>').val(state).text(state));
                 });
-                var row = $('<tr>').html('<td>'+m.PM_id+'</td><td>'+m.decisions.join(', ')+'</td><td>'+m.fees+'</td><td>'+m.total_shares.join('/')+'</td><td>'+m.my_shares.join('/')+'</td>');
+                var row = $('<tr>').html('<td>'+d.txt+'</td><td>'+d.vote_id+'</td><td>'+formatDate(d.maturation_date)+'</td>');
                 var buy = $('<a>').attr('href', '#').text('buy').on('click', function() {
                     $('#trade-modal .trade-type').text('buy');
                     $('#trade-modal .market').text(m.PM_id);
@@ -796,7 +843,7 @@ nav .cash {
                 });
                 var buySell = $('<td>').append(buy).append(' / ').append(sell).css('text-align', 'right');
                 $(row).append(buySell);
-                $('.markets').append(row);
+                $('.decisions').append(row);
             });
         }
     });
@@ -870,25 +917,11 @@ nav .cash {
             'branchId': $('#decision-branch').val(),
             'decisionId': $('#decision-id').val(),
             'decisionText': $('#decision-text').val(),
-            'decisionTime': $('#decision-time').val()
+            'decisionTime': $('#decision-time').val(),
+            'marketInv': $('#market-investment').val()
         }
         socket.emit('add-decision', args);
         $('#add-decision-modal').modal('hide');
-    });
-
-    $('#add-market-modal form').on('submit', function(event) {
-
-        event.preventDefault();
-
-        var args = {
-            'marketId': $('#market-id').val(),
-            'marketInv': $('#market-investment').val(),
-            'marketDecisions': $('#market-decisions').val(),
-            'marketStates': $('#market-states').val(),
-            'marketDep': $('#market-dep').val()
-        }
-        socket.emit('add-market', args);
-        $('#add-market-modal').modal('hide');
     });
 
     $('#send-cash-modal form').on('submit', function(event) {
@@ -935,6 +968,14 @@ nav .cash {
         socket.emit('stop');
     });
 
+
+    var blob = new Blob([document.querySelector('#nodeMonitor').textContent]);
+    var nodeMonitor = new Worker(window.URL.createObjectURL(blob));
+
+    nodeMonitor.addEventListener('error', function(e) {
+        console.log('[nodeMonitor error] '+ e.lineno, ' in ', e.filename, ': ', e.message);
+    }, false);
+
     socket.emit('my_address');
     socket.emit('info', 'my_address');
     socket.emit('miner', 'status');
@@ -950,5 +991,6 @@ nav .cash {
 
 })()
 </script>
+
 </body>
 </html>
