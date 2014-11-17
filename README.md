@@ -1,4 +1,4 @@
-## Truthcoin-UI
+## Augur-UI
 
 ### Requirements
 
@@ -10,8 +10,8 @@
 ### Installation
 
 #### *nix
-- checkout Truthcoin-UI next to Truthcoin-POW (or change config path in app.py)
-- $ cd Truthcoin-UI
+- checkout Augur-UI next to Truthcoin-POW (or change config path in app.py)
+- $ cd Augur-UI
 - $ pip install -r requirements.txt
 - $ python app.py
 - http://localhost:9000
