@@ -10,14 +10,16 @@
 ### Installation
 
 #### *nix
-- checkout Augur-UI next to Truthcoin-POW (or change config path in app.py)
-- $ cd Augur-UI
-- $ pip install -r requirements.txt
-- $ python app.py
-- http://localhost:9000
+First, checkout Augur-UI next to Truthcoin-POW (or change config path in `app.py`).  Then enter the following commands:
+    
+    $ cd Augur-UI
+    $ pip install -r requirements.txt
+    $ python app.py
+
+Navigate to http://localhost:9000 in your browser, and you should see the Augur interface.  Click "Node stopped" to get started.
 
 #### Windows
-Windows installation is a quite bit more involved than any *nix platform. Here are some steps:
+Windows installation is a quite bit more involved than any *nix platform:
 
 1. First make sure you have [python installed](https://www.python.org/downloads/release/python-278/). Also, make sure that you have downloaded [Truthcoin-POW](https://github.com/zack-bitcoin/Truthcoin-POW). This and Augur-UI will have to be extracted to the same directory if you download the zip files. 
 2. You need to install a few dependencies, namely numpy, six, cdecimal and pip, which can all be found [here](http://www.lfd.uci.edu/~gohlke/pythonlibs/). I recommend using Ctrl+F to find them (and make sure you get the newest one that matches your python installation's architecture!)
