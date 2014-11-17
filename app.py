@@ -4,7 +4,7 @@ from __future__ import division
 from gevent import monkey
 monkey.patch_all()
 
-import json, datetime, sys, os, socket, time, re, pprint, ast
+import json, datetime, sys, os, socket, time, re, pprint, ast, hashlib
 
 from flask import Flask, session, request, escape, url_for, redirect, render_template, g, abort
 from flask.ext.socketio import SocketIO, emit, send
@@ -173,18 +173,25 @@ def add_decision(args):
 
     # calulate maturation block from days 
     block = node.network_blockcount + 40
+    decision_id = hashlib.sha1(args['decisionText']).hexdigest()[:16]
 
-    data = node.send({ 'command':['ask_decision', args['branchId'], block, args['decisionId'], args['decisionText']] })
+    data = node.send({ 'command':['ask_decision', args['branchId'], block, decision_id, args['decisionText']] })
     app.logger.debug(data)
+
+    # awesome hack to get actual pending tx count for proper push_tx
+    for tx in node.send({ 'command': ['txs']}):
+        node.my_account['tx_count'] = tx['count'] if node.my_account['tx_count'] < tx['count'] else node.my_account['tx_count']
+
+    app.logger.debug(node.my_account['tx_count'])
 
     tx = {
         "B": args['marketInv'],
-        "PM_id": "%s-market" % args['decisionId'],
-        "decisions": args['decisionId'],
+        "PM_id": "market-%s" % decision_id,
+        "decisions": [decision_id],
         "fees": 0,
         "owner": node.my_account['address'],
-        "states": ['yes', 'no'],
-        "states_combinatory": 1,
+        "states": ['no', 'yes'],
+        "states_combinatory": [0],
         "type": "prediction_market",
     }
 
@@ -270,7 +277,7 @@ def ping():
 
     if data:
         app.logger.debug(data)
-        
+
         emit('blockcount', int(data))
 
 

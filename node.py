@@ -138,7 +138,7 @@ class Node(Thread):
 
                 # add required args
                 msg['command'][1]['pubkeys'] = [ unicode(self.my_account['pubkey']) ]
-                msg['command'][1]['count'] = self.my_account['tx_count']
+                msg['command'][1]['count'] = self.my_account['tx_count'] + 1
 
                 # hash message, sign and add sig
                 h = self.det_hash(msg['command'][1])
@@ -177,12 +177,12 @@ class Node(Thread):
         
             return self.send(msg, retry=retry+1)
         
-        if response == 'no length':
+        elif response == 'no length':
         
             self.app.logger.error('no length: ' + str(msg))
         
             return self.send(msg, retry=retry+1)
-        
+
         return response
 
 
@@ -483,7 +483,7 @@ class Node(Thread):
 
                 elif tx['type'] == 'spend':
 
-                    sender = 'unknown'
+                    sender = self.det_hash(tx['pubkeys'][0])
                     if tx.get('vote_id'):
                         s = '%s sent %s %s reputation to %s' % (sender, tx['amount'], tx['vote_id'], tx['to'])
                     else:

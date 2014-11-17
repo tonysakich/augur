@@ -190,6 +190,10 @@ nav .cash {
     border-radius: 0;
     display: none;
 }
+#alert div {
+    max-height: 100px;
+    overflow-y: scroll;
+}
 </style>
 
 <body>
@@ -428,7 +432,6 @@ nav .cash {
             <div class="modal-content">
                 <div class="modal-header">
                     <h4>Add decision</h4>
-                    <i>Decisions must be a true or false question</i>
                 </div>
                 <div class="modal-body clearfix">
                     <form role="form">
@@ -437,12 +440,8 @@ nav .cash {
                             <select class="form-control branches" id="decision-branch" name="decision-branch"></select>
                         </div>
                         <div class="form-group">
-                            <label for="decision-id">Decision ID</label>
-                            <input type="text" class="form-control" id="decision-id" placeholder="Enter a unique decision ID">
-                        </div>
-                        <div class="form-group">
                             <label for="decision-text">Decision text</label>
-                            <input type="text" class="form-control" id="decision-text" placeholder="Enter a short decision description">
+                            <input type="text" class="form-control" id="decision-text" placeholder="Decisions must be a true or false question">
                         </div>
                         <div class="form-group">
                             <label for="decision-date">Days to maturation</label>
@@ -629,17 +628,15 @@ nav .cash {
 
     function formatDate(date) {
 
-        console.log(date);
-
         months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Oct','Sep','Nov','Dec'];
         d = new Date(date);
 
-        console.log(d);
         var hour = d.getHours() > 11  ? d.getHours() - 12 : d.getHours();
+        hour = hour == 0 ? 12 : hour;
         var apm = d.getHours() > 10 || d.getHours() == 23 && d.getHours() != 0 ? 'pm' : 'am';
         var minutes = d.getMinutes() < 10 ? '0'+ d.getMinutes() : d.getMinutes();
   
-        return months[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear()+' / '+hour+':'+minutes+' '+apm;
+        return months[d.getMonth()]+' '+d.getDate()+', '+hour+':'+minutes+' '+apm;
     }
 
 
@@ -652,11 +649,11 @@ nav .cash {
             $('#alert').removeClass('alert-info').removeClass('alert-success').removeClass('alert-warning').removeClass('alert-danger');
             $('#alert').addClass('alert-'+data['type']);
 
-            html = [];
+            items = [];
             _.each(data.messages, function(m) {
-                html.push(m);
+                items.push($('<p>').html(m));
             });
-            $('#alert div').empty().html(html.join('<br>'));
+            $('#alert div').append(items);
             $('#alert').show();
         }
     });
@@ -915,7 +912,6 @@ nav .cash {
 
         var args = {
             'branchId': $('#decision-branch').val(),
-            'decisionId': $('#decision-id').val(),
             'decisionText': $('#decision-text').val(),
             'decisionTime': $('#decision-time').val(),
             'marketInv': $('#market-investment').val()
@@ -968,6 +964,9 @@ nav .cash {
         socket.emit('stop');
     });
 
+    $('#alert').on('closed.bs.alert', function() {
+        $('#alert div').empty();
+    });
 
     var blob = new Blob([document.querySelector('#nodeMonitor').textContent]);
     var nodeMonitor = new Worker(window.URL.createObjectURL(blob));
