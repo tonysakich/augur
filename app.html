@@ -61,9 +61,23 @@ nav .cash {
     font-weight: bold;
 }
 
-.nav .dropdown button {
-    border-radius: 0px;
+.nav button {
     margin-top: 7px;
+}
+.nav .btn-danger .status:before {
+    content: 'Node stopped';
+}
+.nav .btn-warning .status:before {
+    content: 'Node starting';
+}
+.nav .btn-success .status:before {
+    content: 'Node running';
+}
+.nav span.glyphicon-cog {
+    font-size: 16px;
+    margin-left: 8px;
+    position: relative;
+    top: 3px;
 }
 
 .sidebar .panel {
@@ -82,8 +96,23 @@ nav .cash {
 .branches.all .other {
     display: block;
 }
-#password-modal .modal-dialog {
-    width: 400px;
+#start-node,
+#stop-node {
+    margin-top: 0px;
+}
+#node-settings-modal .modal-dialog {
+    font-size: 14px;
+    width: 350px;
+}
+#node-settings-modal legend {
+    font-size: 14px;
+}
+#node-settings-modal label {
+    font-weight: 200;
+    font-size: 12px;
+    position: relative;
+    top: 0px;
+    right: -16px;
 }
 #create-branch-modal .modal-dialog {
     width: 400px;
@@ -92,7 +121,10 @@ nav .cash {
     width: 90%;
 }
 #explore-modal pre {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
     font-size: 12px;
+    margin: 0px;
 }
 #explore-modal .input-group {
     width: 250px;
@@ -174,11 +206,6 @@ nav .cash {
     -o-animation: spin 1s infinite linear;
     animation: spin 1s infinite linear;
 }
-.nav button span {
-    position: relative;
-    top: 3px;
-    margin-left: 5px;
-}
 #alert {
     padding: 10px;
     position: fixed;
@@ -191,8 +218,12 @@ nav .cash {
     display: none;
 }
 #alert div {
-    max-height: 100px;
+    max-height: 60px;
     overflow-y: scroll;
+}
+#alert div p {
+    font-size: 13px;
+    margin-bottom: 5px;
 }
 </style>
 
@@ -204,23 +235,11 @@ nav .cash {
                 <h1 class="navbar-brand"><span>Augur</span></h1>
             </div>
             <ul class="nav navbar-nav navbar-right">
-                <li class="dropdown node-stopped">
-                    <button class="btn btn-danger" data-toggle="dropdown">Node stopped <span class="glyphicon glyphicon-cog"></span></button>
-                    <ul class="dropdown-menu" role="menu">
-                        <li><a href="#password-modal" data-toggle="modal">Start node</a></li>
-                    </ul>
-                </li>
-                <li class="dropdown node-starting" style="display:none;">
-                    <button class="btn btn-warning" data-toggle="dropdown">Node starting <span class="glyphicon glyphicon-refresh spin"></span></button>
-                    <ul class="dropdown-menu" role="menu">
-                        <li><a href="#" id="toggle-miner" class="off">Cancel</a></li>
-                    </ul>
-                </li>
-                <li class="dropdown node-running" style="display:none;">
-                    <button class="btn btn-success" data-toggle="dropdown">Node running <span class="glyphicon glyphicon-cog"></span></button>
-                    <ul class="dropdown-menu" role="menu">
-                        <li><a href="#" id="stop-node">Stop node</a></li>
-                    </ul>
+                <li>
+                    <button class="btn btn-danger" data-toggle="modal" data-target="#node-settings-modal">
+                        <span class="status"></span>
+                        <span class="glyphicon glyphicon-cog"></span>
+                    </button>
                 </li>
             </ul>
         </div>
@@ -289,7 +308,7 @@ nav .cash {
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>Description</th><th>Branch</th><th>Matures</th><th>Trade</th>
+                            <th>Description</th><th>Branch</th><th>Matures</th><th style="text-align: right;">Trade</th>
                         <tr>
                     </thead>
                     <tbody class="decisions"></tbody>
@@ -444,8 +463,8 @@ nav .cash {
                             <input type="text" class="form-control" id="decision-text" placeholder="Decisions must be a true or false question">
                         </div>
                         <div class="form-group">
-                            <label for="decision-date">Days to maturation</label>
-                            <input type="text" class="form-control" id="decision-time" placeholder="Enter number of days when decision matures">
+                            <label for="decision-date">Maturation block</label>
+                            <input type="text" class="form-control" id="decision-time" placeholder="Enter block number that decision matures">
                         </div>
                         <div class="form-group">
                             <label for="market-investment">Initial Investment (B)</label>
@@ -458,28 +477,42 @@ nav .cash {
         </div>
     </div>
 
-    <div id="node-options-modal" class="modal fade">
+    <div id="node-settings-modal" class="modal fade">
         <div class="modal-dialog model-sm">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4>Node options</h4>
+                    <button id="stop-node" class="btn btn-danger btn-block" data-loading-text="Stopping..." style="display: none;">Stop node</button>
+                    <button id="start-node" class="btn btn-success btn-block" data-loading-text="Starting...">Start node</button>
+                    <form id="password-form" style="display: none;">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="password" placeholder="Enter password or address">
+                            <span class="input-group-btn">
+                                <button class="btn btn-success" type="sumbit">Start</button>
+                            </span>
+                        </div>
+                    </form>
                 </div>
                 <div class="modal-body clearfix">
-                    <form role="form">
+                    <form class="form-horizontal" role="form">
                         <div class="form-group">
-                            <label for="node-address">Address or IP</label>
-                            <input type="text" class="form-control" id="node-address">
+                            <label for="node-host" class="col-sm-4 control-label">Host</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control input-sm" id="node-host" placeholder="Host">
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label for="node-port">Port</label>
-                            <input type="text" class="form-control" id="node-port">
+                            <label for="node-port" class="col-sm-4 control-label">Port</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control input-sm" id="node-port" placeholder="Port">
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label for="core-path">Path to augur core (required for start/stop only)</label>
-                            <input type="text" class="form-control" id="core-path">
+                            <label for="core-path" class="col-sm-4 control-label">Augur path</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control input-sm" id="core-path" placeholder="Path to Augur core">
+                            </div>
                         </div>
-                        <button class="btn btn-default pull-right">CANCEL</button>
-                        <button type="submit" class="btn btn-primary pull-right">SAVE</button>
+                        <button type="submit" class="btn btn-primary pull-right btn-sm">SAVE SETTINGS</button>
                     </form>
                 </div>
             </div>
@@ -501,9 +534,7 @@ nav .cash {
                         </div>
                     </form>
                 </div>
-                <div class="modal-body">
-                    <pre class="block-view"></pre>
-                </div>
+                <pre class="block-view"></pre>
             </div>
         </div>
     </div>  
@@ -518,118 +549,305 @@ nav .cash {
         </div>
     </div>
 
+
 <script id="nodeMonitor" type="javascript/worker">
 
-    console.log('starting node monitor...');
+    console.log('[nodeMonitor] starting');
 
     importScripts("http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js");
     importScripts("http://cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js");
 
-    socket = io.connect(location.origin + '/socket.io/')
+    var socket = io.connect(location.origin + '/socket.io/')
 
-    SECONDS_PER_BLOCK = 60;
-
-    blockcount = 0;
-    network_blockcount = 0;
-    blocks = {};
+    var SECONDS_PER_BLOCK = 60;
+    var REPORT_CYCLE = 40;
 
     var augur = {
         decisions: {},
         branches: {},
-        markets: {}
+        markets: {},
+        blockcount: 0,
+        network_blockcount: 0,
+        running: false,
+        starting: false,
+        market_queue: {}
     }
 
-    socket.on('blockcount-new', function (count) {
+    var cycle = {
+        count: 0
+    };
 
-        if (blockcount != count) {
+    var account = {};
 
-            prev_blockcount = blockcount;
-            blockcount = count;
+    function blockTime(block) {   // estimates time of given block
+
+        var d = new Date();
+        var seconds_diff = (block - augur.network_blockcount) * SECONDS_PER_BLOCK;
+        d.setSeconds(d.getSeconds() + seconds_diff);
+
+        return d;
+    }
+
+    socket.on('account', function (data) { 
+
+        account = _.extend(account, data)
+
+        self.postMessage({'address': account.address});
+        self.postMessage({'cash': account.cash});
+        //self.postMessage({'branches': augur.branches});
+        //self.postMessage({'shares': account.shares});
+    });
+
+    socket.on('miner', function (data) { 
+        self.postMessage({'miner': data});
+    });
+
+    socket.on('blockcount', function (count) {
+
+        if (augur.blockcount != count) {
+
+            var prev_blockcount = augur.blockcount;
+            var start_block = prev_blockcount + 1
+
+            augur.blockcount = count;
             self.postMessage({'blockcount': count});
 
+            socket.emit('update-account');
+            console.log('[nodeMonitor] fetching blocks '+ start_block +' - '+augur.blockcount);
+
             // examine new blocks
-            for (i = prev_blockcount + 1; i <= blockcount; i++) { 
+            for (i = start_block; i <= augur.blockcount; i++) {
                 socket.emit('get-block', i);
+            }
+
+            // check for maturing decisions
+            _.each(augur.decisions, function(d) {
+                if (d['status'] == 'open' && d['maturation'] >= augur.network_blockcount) {
+                    d['status'] == 'closed';
+                }
+            });
+
+            // check cycle reporting phase
+            cycle_count = parseInt(augur.network_blockcount / REPORT_CYCLE);
+            cycle_blockcount = augur.network_blockcount - (cycle_count * REPORT_CYCLE);
+
+            // reporting phase
+            if (cycle_count != cycle['count']) {   // we're in a new cycle
+
+                old_cycle_count = cycle['count'];
+
+                cycle['count'] = cycle_count;
+                cycle['reported'] = false;
+                cycle['phase'] = 'reporting';
+
+                console.log("[nodeMonitor] reporting cycle " + cycle['count']);
+
+                cycle['end_block'] = (cycle_count + 1) * REPORT_CYCLE;
+
+                if (cycle_count != 0) {
+
+                    cycle['last_end_block'] = cycle_count * REPORT_CYCLE;
+
+                    // collect reporting decisions
+                    _.each(augur.decisions, function(d) {
+
+                        account['decisions'] = {};
+
+                        if (d['status'] == 'closed' && _.has(account['branches'], d['vote_id'])) {
+                            account['decisions'][d['decision_id']] = d;
+                        };
+                    });
+                }
+
+            // reveal phase
+            } else if (cycle_blockcount > REPORT_CYCLE * 0.875 && cycle_blockcount < REPORT_CYCLE * 0.975 && cycle['phase'] != 'reveal') {   
+
+                cycle['phase'] = 'reveal';
+
+                // reveal votes if reported
+                if (cycle['reported']) {
+
+                    _.each(account['decisions'], function(d) {
+
+                        socket.emit('reveal-vote', d['vote_id'], d['decision_id']);
+                        console.log('[nodeMonitor] revealing vote ('+d['decision_id']+') in '+d['vote_id']);
+
+                        // message to update report
+                    });
+                }
+
+            // SVD phase
+            } else if (cycle_blockcount >= REPORT_CYCLE * 0.975 && cycle['phase'] != 'svd') {
+
+                cycle['phase'] = 'svd';
+
+                // collect all branches voted on
+                branches = {}
+
+                _.each(account['decisions'], function(d) {
+
+                    branches[d['vote_id']] = true;
+
+                    // dedupe list and do SVD concensus on all voted branches
+                    _.each(branches.keys(), function(branch) {
+
+                        socket.emit('svd-consensus', branch);
+                        console.log('[nodeMonitor] svd consensus for ' + branch);
+
+                        // message to update report
+                    });
+                });
             }
         }
     });
 
-    socket.on('load-block', function (block) {
- 
+    socket.on('block', function (block) {
+
         if (block && block['txs']) {
+
+            var messages = []
 
             _.each(block['txs'], function(tx) {
 
-                var text;
+                // build ledger of all account transactions
+                if (tx['pubkey'] == account['pubkey']) acount['txs'].push(tx);
 
                 if (tx['type'] == 'propose_decision') {
 
-                    tx['state'] = x['maturation'] > network_blockcount ? 'open' : 'mature';
+                    tx['status'] = tx['maturation'] > augur.network_blockcount ? 'open' : 'closed';
                     augur.decisions[tx['decision_id']] = tx;
 
-                    text = 'New decision added: ' + tx['txt'] + ' (' + tx['decision_id'] + ')';
+                    // check to see if we're waiting for this decision to show up
+                    if (augur.market_queue[tx['decision_id']]) {
+
+                        socket.emit('add-market', augur.market_queue[tx['decision_id']]);
+                        delete account.branches[tx.vote_id];
+                    }
+
+                    messages.push('New decision added: ' + tx['txt'] + ' (' + tx['decision_id'] + ')');
 
                 } else if (tx['type'] == 'prediction_market') {
 
                     augur.markets[tx['PM_id']] = tx;
 
-                    text = 'New market added: ' + tx['PM_id'];
+                    // add extra decision data
+                    var decision_id = tx['decisions'][0];
+                    console.log(augur.decisions[decision_id]);
+                    augur.markets[tx['PM_id']]['txt'] = augur.decisions[decision_id]['txt'];
+                    augur.markets[tx['PM_id']]['vote_id'] = augur.decisions[decision_id]['vote_id'];
+                    augur.markets[tx['PM_id']]['maturation'] = augur.decisions[decision_id]['maturation'];
+                    augur.markets[tx['PM_id']]['maturation_date'] = blockTime(augur.decisions[decision_id]['maturation']);
+                    augur.markets[tx['PM_id']]['status'] = augur.decisions[decision_id]['status'];
+
+                    self.postMessage({'markets': augur.markets});
+                    messages.push('New market added: ' + tx['PM_id']);
 
                 } else if (tx['type'] == 'create_jury') {
 
-                    augur.branches['vote_id'] = tx;
+                    augur.branches[tx.vote_id] = tx;
 
-                    text = 'New branch added: ' + tx['vote_id'];
+                    // check to see if we have any rep on this branch
+                    if (_.has(account.branches, tx.vote_id)) {
+                        augur.branches[tx.vote_id]['my_rep'] = account.branches[tx.vote_id];
+                    }
+
+                    self.postMessage({'branches': augur.branches});
+                    messages.push('New branch added: ' + tx['vote_id']);
 
                 } else if (tx['type'] == 'spend') {
 
-                    sender = 'unknown'
+                    sender = 'unknown';
                     if (tx.vote_id) {
-                        text = sender + ' sent ' + tx['amount'] + ' ' + tx['vote_id'] + ' reputation to ' + tx['to'];
+                        messages.push(sender + ' sent ' + tx['amount'] + ' ' + tx['vote_id'] + ' reputation to ' + tx['to']);
                     } else {
-                        text = sender + ' sent ' + tx['amount'] + ' cash to ' + tx['to'];
+                        messages.push(sender + ' sent ' + tx['amount'] + ' cash to ' + tx['to']);
                     }
 
                 }
-
-                if (text) self.postMessage({'alert': {'type': 'info', 'message': text}});
             });
+
+            if (messages.length) self.postMessage({'alert': {'type': 'info', 'messages': messages}});
         }      
     });
 
     socket.on('peers', function (peers) {
-        
+
+        if (!augur.running) {
+            socket.emit('get-account');
+            augur.running = true;
+
+            self.postMessage({'node-up': true});            
+        }
+
+        _.each(peers, function(data) {
+
+            // update network blockcount to largest peers
+            augur.network_blockcount = data.blockcount > augur.network_blockcount ? data.blockcount : augur.network_blockcount;
+        });
+
+        self.postMessage({'peers': peers});
+    });
+
+    socket.on('node-down', function() {
+
+        // check to see if we were already running
+        if  (augur.running) {
+
+            self.postMessage({'node-down': true});   
+            augur.running = false;
+        }
+    });
+
+    self.addEventListener('message', function(message) {
+
+        var m = message.data;
+
+        if (m && m['add-decision']) {
+
+            var tx = {
+                'txt': m['add-decision']['decisionText'],
+                'decision_id': m['add-decision']['decisionId'],
+                'vote_id': m['add-decision']['branchId'],
+                'maturation': m['add-decision']['decisionMaturation'],
+                'status': 'pending'
+            }
+
+            augur.decisions[tx.decision] = tx;
+
+            var tx = {
+                'B': int(m['add-decision']['marketInv']),
+                'PM_id': m['add-decision']['decisionId'] + '.market',
+                'decisions': [m['add-decision']['decisionId']],
+                'fees': 0,
+                'owner': account.address,
+                'states': ['no', 'yes'],
+                'type': "prediction_market",
+                'txt': m['add-decision']['decisionText'],
+                'vote_id': m['add-decision']['branchId'],
+                'maturation': m['add-decision']['decisionMaturation'],
+                'status': 'pending'
+            }
+
+            augur.markets[tx.PM_id] = tx;
+            self.postMessage({'markets': augur.markets});
+
+            augur.market_queue[m['add-decision'].decisionId] = m['add-decision'];
+        }
     });
 
     // start pinging node for updates
-    //setInterval(function() { socket.emit('ping') }, 1000);
+    setInterval(function() { socket.emit('ping') }, 2500);
 
 </script>
 
 <script>
 (function () {
 
-    ////
-    // local data
-
-    var augur = {
-
-        markets: {},
-        branches: {},
-        decisions: {},
-        cycle: {}
-    }
-
     var socket = io.connect(location.origin + '/socket.io/');
 
-    var _market = {};
-    var _branch = {};
-    var _decision = {};
-
-    function formatDate(date) {
+    function formatDate(d) {
 
         months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Oct','Sep','Nov','Dec'];
-        d = new Date(date);
 
         var hour = d.getHours() > 11  ? d.getHours() - 12 : d.getHours();
         hour = hour == 0 ? 12 : hour;
@@ -639,226 +857,224 @@ nav .cash {
         return months[d.getMonth()]+' '+d.getDate()+', '+hour+':'+minutes+' '+apm;
     }
 
+    // define node monitoring web worker from script block above and start it
+    var blob = new Blob([document.querySelector('#nodeMonitor').textContent]);
+    var nodeMonitor = new Worker(window.URL.createObjectURL(blob));
 
-    ////
-    // socket events
+    // worker error handling
+    nodeMonitor.addEventListener('error', function(e) {
+        console.log('[nodeMonitor] error on '+ e.lineno,': ' +e.message);
+    }, false);
 
-    socket.on('alert', function (data) {
+    // main worker postMessage listener
+    nodeMonitor.addEventListener('message', function(e) {
+    
+        var m = e.data;
 
-        if (data) {
+        if (m['alert']) {
+
             $('#alert').removeClass('alert-info').removeClass('alert-success').removeClass('alert-warning').removeClass('alert-danger');
-            $('#alert').addClass('alert-'+data['type']);
+            $('#alert').addClass('alert-'+m.alert['type']);
 
             items = [];
-            _.each(data.messages, function(m) {
-                items.push($('<p>').html(m));
+            _.each(m.alert['messages'], function(message) {
+                items.push($('<p>').html(message));
             });
             $('#alert div').append(items);
+            $('#alert div').scrollTop($('#alert div')[0].scrollHeight);
             $('#alert').show();
-        }
-    });
 
+        } else if (m['node-up']) {
 
-    socket.on('info', function (data) {
+            $('#main').show();
+            $('#node-settings-modal').modal('hide');
+            $('.nav button').addClass('btn-success')
+            $('.nav button').removeClass('btn-warning')
+            $('.nav button').removeClass('btn-danger')
+            $('#node-settings-modal .btn-success').hide();
+            $('#node-settings-modal .btn-danger').show();
+            $('#start-node').button('reset');
 
-        if (data) {
-            $('.cash').html('<span class="pull-left"><b>'+data.amount+'</b> CASH</span><a class="pull-right" href="#send-cash-modal" data-toggle="modal">send</a>');
-        }
-    });
+        } else if (m['node-starting']) {
 
+            $('.nav button').removeClass('btn-success');
+            $('.nav button').addClass('btn-warning');
+            $('.nav button').removeClass('stopped');
+            //$('#main').show();   // show the dash while starting up or not?
 
-    socket.on('report', function (cycle) {
+        } else if (m['node-down']) {
 
-        augur.cycle = cycle;
+            $('#main').hide();
+            $('#node-settings-modal').modal('hide');
+            $('.nav button').removeClass('btn-success');
+            $('.nav button').removeClass('btn-danger');
+            $('.nav button').addClass('btn-danger');
+            $('#node-settings-modal .btn-success').show();
+            $('#node-settings-modal .btn-danger').hide();
+            $('#stop-node').button('reset');
 
-        if (!$.isEmptyObject(cycle.decisions)) {
+        } else if (m['peers']) {
 
-            $('#report').show();
+            $('.peers').empty();
 
-            $('.reporting h3').html('Reporting <span class="pull-right">Cycle ending ' + formatDate(cycle.last_end_date) + '</span>');
+            $.each(m['peers'], function(address, info) {
+                var p = $('<p>').text(address);
+                $('.peers').append(p);
+            });
 
-            if (cycle.reported && !cycle.phase) {
-                $('.reporting').addClass('reported');
-                $('#reveal-button').attr('disabled', 'true');
-            } else if (cycle.phase == 'reporting') {
-                $('.reporting').removeClass('reported');
-                $('#reveal-button').removeAttr('disabled');
+        } else if (m['report']) {
+
+            if (!$.isEmptyObject(m['report']['decisions'])) {
+
+                $('#report').show();
+
+                $('.reporting h3').html('Reporting <span class="pull-right">Cycle ending ' + formatDate(cycle.last_end_date) + '</span>');
+
+                if (cycle.reported && !cycle.phase) {
+                    $('.reporting').addClass('reported');
+                    $('#reveal-button').attr('disabled', 'true');
+                } else if (cycle.phase == 'reporting') {
+                    $('.reporting').removeClass('reported');
+                    $('#reveal-button').removeAttr('disabled');
+                }
+
+                $('#report-decisions').empty();
+
+                var template = _.template($("#report-template").html());
+                _.each(cycle.reporting, function(d, id) {
+                    $('#report-decisions').append(template({'d': d}));
+                });
+
+            } else {
+
+                $('#report').hide();
+
+                $('.reporting h3').html('Cycle ending ' + formatDate(cycle.end_date));
             }
 
-            $('#report-decisions').empty();
+            $('.reporting').show();
+ 
+        } else if (m['branches']) {
 
-            var template = _.template($("#report-template").html());
-            _.each(cycle.reporting, function(d, id) {
-                $('#report-decisions').append(template({'d': d}));
-            });
+             if (!$.isEmptyObject(m['branches'])) {
 
-        } else {
+                $('.branches').empty()
 
-            $('#report').hide();
+                // sort on reputation
+                //m['branches'] = m['branches'].sort(function(a,b) {return (a.my_rep > b.my_rep) ? -1 : ((b.my_rep > a.my_rep) ? 1 : 0);} );
+                var has_branches = false;
 
-            $('.reporting h3').html('Cycle ending ' + formatDate(cycle.end_date));
-        }
-        $('.reporting').show()
-    });
+                _.each(m['branches'], function(branch) {
 
-    socket.on('branches', function (branches) {
+                    m['branches'][branch['vote_id']] = branch;   // update local branches
 
-        if (branches.length) {
+                    // update add decision modal
+                    $('#decision-branch').append($('<option>').val(branch.vote_id).text(branch.vote_id));
 
-            $('.branches').empty()
+                    if (branch.my_rep) {
 
-            // sort on reputation
-            branches = branches.sort(function(a,b) {return (a.my_rep > b.my_rep) ? -1 : ((b.my_rep > a.my_rep) ? 1 : 0);} );
-            var has_branches = false;
+                        has_branches = true;
+                        var p = $('<p>').html('<span class="pull-left"><b>'+branch.vote_id+'</b> ('+branch.my_rep+')</span>').addClass('clearfix');
+                        var send = $('<a>').attr('href','#').addClass('pull-right').text('send').on('click', function() {
+                            $('#rep-branch').val(branch.vote_id);
+                            $('#send-rep-modal .branch').text(branch.vote_id);
+                            $('#send-rep-modal').modal('show');
+                        })
+                        p.append(send);
 
-            _.each(branches, function(branch) {
-
-                _branch[branch['vote_id']] = branch;   // update local branches
-
-                // update add decision modal
-                $('#decision-branch').append($('<option>').val(branch.vote_id).text(branch.vote_id));
-
-                if (branch.my_rep) {
-
-                    has_branches = true;
-                    var p = $('<p>').html('<span class="pull-left"><b>'+branch.vote_id+'</b> ('+branch.my_rep+')</span>').addClass('clearfix');
-                    var send = $('<a>').attr('href','#').addClass('pull-right').text('send').on('click', function() {
-                        $('#rep-branch').val(branch.vote_id);
-                        $('#send-rep-modal .branch').text(branch.vote_id);
-                        $('#send-rep-modal').modal('show');
-                    })
-                    p.append(send);
-
-                } else {
-                    var p = $('<p class="other">').html('<span>'+branch.vote_id+'</span>');
-                }
-                $('.branches').append(p);
-            });
-
-            var bt = $('<a>').addClass('pull-right branches-toggle').on('click', function(event) {
-                $('.branches').toggleClass('all');
-            });
-            $('.branches').append(bt);
-
-        } else {
-
-            var p = $('<p>').html('<span class="pull-left">There are no branches</span>');
-            $('.branches').empty().append(p);
-        }
-    });
-
-    socket.on('my-address', function (address) {
-
-        $('.address').html(address);
-    });
-
-    socket.on('blockcount', function (count) {
-
-        $('.blocks').html('<span class="pull-left"><b>'+count+'</b> BLOCKS</span><a class="pull-right" href="#explore-modal" data-toggle="modal">explore</a>');
-    });
-
-    socket.on('show-block', function (block) {
-
-        $('.block-view').text(block);
-    });
-
-    socket.on('node-up', function () {
-
-        $('#main').show();
-        $('.node-stopped').hide();
-        $('.node-starting').hide();
-        $('.node-running').show();
-
-        socket.emit('my_address');
-        socket.emit('info', 'my_address');
-        socket.emit('peers');
-        socket.emit('miner', 'status');
-        socket.emit('blockcount');
-    });
-
-    socket.on('node-starting', function () {
-
-        $('.node-stopped').hide();
-        $('.node-starting').show();
-        //$('#main').show();
-    });
-
-    socket.on('node-down', function () {
-
-        $('#main').hide();
-        $('.node-stopped').show();
-        $('.node-starting').hide();
-        $('.node-running').hide();
-    });
-
-    socket.on('peers', function (peers) {
-
-        $('.peers').empty();
-
-        $.each(peers, function(address, info) {
-            var p = $('<p>').text(address);
-            $('.peers').append(p);
-        });
-    });
-
-    socket.on('decisions', function (decisions) {
-        if (decisions.length) {  
-            $.each(decisions, function(i, d) {
-                _decision[d.decision_id] = d;   // update local decision
-            });
-        }
-    });
-
-    socket.on('markets', function (markets) {
-        if (markets.length) {
-            $('.decisions').empty();
-            $.each(markets, function(i, m) {
-
-                _market[m['PM_id']] = m;   // update local markets
-                var d = _decision[m['decisions'][0]];
-
-                var states = $('<select>').addClass('states, form-control').attr('name', 'market-state');
-                _.each(m['states'], function(state) {
-                    states.append($('<option>').val(state).text(state));
+                    } else {
+                        var p = $('<p class="other">').html('<span>'+branch.vote_id+'</span>');
+                    }
+                    $('.branches').append(p);
                 });
-                var row = $('<tr>').html('<td>'+d.txt+'</td><td>'+d.vote_id+'</td><td>'+formatDate(d.maturation_date)+'</td>');
-                var buy = $('<a>').attr('href', '#').text('buy').on('click', function() {
-                    $('#trade-modal .trade-type').text('buy');
-                    $('#trade-modal .market').text(m.PM_id);
-                    $('#trade-market').val(m.PM_id);
-                    $('#trade-type').val('buy');
-                    $('#trade-modal').modal('show');
-                    $('#market-state').empty().append(states);
+
+                var bt = $('<a>').addClass('pull-right branches-toggle').on('click', function(event) {
+                    $('.branches').toggleClass('all');
                 });
-                var sell = $('<a>').attr('href', '#').text('sell').on('click', function() {
-                    $('#trade-modal .trade-type').text('sell');
-                    $('#trade-modal .market').text(m.PM_id);
-                    $('#trade-market').val(m.PM_id);
-                    $('#trade-type').val('sell');
-                    $('#trade-modal').modal('show');
-                    $('#market-state').empty().append(states);
+                $('.branches').append(bt);
+
+            } else {
+
+                var p = $('<p>').html('<span class="pull-left">There are no branches</span>');
+                $('.branches').empty().append(p);
+            }
+
+        } else if (m['address']) {
+
+            $('.address').html(m['address']);
+
+        } else if (m['blockcount']) {
+
+            $('.blocks').html('<span class="pull-left"><b>'+m['blockcount']+'</b> BLOCKS</span><a class="pull-right" href="#explore-modal" data-toggle="modal">explore</a>');
+
+        } else if (m['view-block']) {
+
+            $('.block-view').text(m['view-block']);
+
+        } else if (m['markets']) {
+
+            if (!$.isEmptyObject(m['markets'])) {
+
+                $('.decisions').empty();
+                _.each(m['markets'], function(m) {
+
+                    console.log(m.status);
+
+                    var states = $('<select>').addClass('states, form-control').attr('name', 'market-state');
+                    _.each(m['states'], function(state) {
+                        states.append($('<option>').val(state).text(state));
+                    });
+                    var row = $('<tr>').html('<td>'+m.txt+'</td><td>'+m.vote_id+'</td><td>'+formatDate(m.maturation_date)+'</td>');
+                    var buy = $('<a>').attr('href', '#').text('buy').on('click', function() {
+                        $('#trade-modal .trade-type').text('buy');
+                        $('#trade-modal .market').text(m.PM_id);
+                        $('#trade-market').val(m.PM_id);
+                        $('#trade-type').val('buy');
+                        $('#trade-modal').modal('show');
+                        $('#market-state').empty().append(states);
+                    });
+                    var sell = $('<a>').attr('href', '#').text('sell').on('click', function() {
+                        $('#trade-modal .trade-type').text('sell');
+                        $('#trade-modal .market').text(m.PM_id);
+                        $('#trade-market').val(m.PM_id);
+                        $('#trade-type').val('sell');
+                        $('#trade-modal').modal('show');
+                        $('#market-state').empty().append(states);
+                    });
+                    if (m.status == 'open') {
+                        var trade = $('<td>').append(buy).append(' / ').append(sell).css('text-align', 'right');
+                    } else if (m.status == 'pending') {
+                        var trade = $('<td>').text('pending').css('text-align', 'right');
+                    } else {
+                        var trade = $('<td>').text('closed').css('text-align', 'right');
+                    }
+                    $(row).append(trade);
+                    $('.decisions').append(row);
                 });
-                var buySell = $('<td>').append(buy).append(' / ').append(sell).css('text-align', 'right');
-                $(row).append(buySell);
-                $('.decisions').append(row);
-            });
+            }
+
+        } else if (m['miner']) {
+
+            if (m['miner'] == 'on') {
+
+                $('.miner-off').hide();
+                $('.miner-on').show()
+
+            } else {
+
+                $('.miner-on').hide()
+                $('.miner-off').show();
+            }
+
+        } else if (m['cash']) {
+
+            $('.cash').html('<span class="pull-left"><b>'+m['cash']+'</b> CASH</span><a class="pull-right" href="#send-cash-modal" data-toggle="modal">send</a>');
         }
-    });
 
-    socket.on('miner', function (status) {
+    }, false);
 
-        if (status == 'on') {
-
-            $('.miner-off').hide();
-            $('.miner-on').show()
-
-        } else {
-
-            $('.miner-on').hide()
-            $('.miner-off').show();
-        }
-    });
-
+    // start worker
+    nodeMonitor.postMessage();
 
     ////
     // actions
@@ -875,12 +1091,13 @@ nav .cash {
         }
     });
 
-    $('#password-modal form').on('submit', function(event) {
+    $('#password-form').on('submit', function(event) {
 
         event.preventDefault();
-        socket.emit('start', $('#password-modal input[name=password]').val());
-        $('.node-stopped').hide();
-        $('.node-starting').show();
+        socket.emit('start', $('#password').val());
+        $(this).hide();
+        $('#start-node').button('loading');
+        $('#start-node').show();
         $('#password-modal').modal('hide');
     }); 
 
@@ -913,11 +1130,16 @@ nav .cash {
         var args = {
             'branchId': $('#decision-branch').val(),
             'decisionText': $('#decision-text').val(),
-            'decisionTime': $('#decision-time').val(),
+            'decisionMaturation': $('#decision-time').val(),
             'marketInv': $('#market-investment').val()
         }
+
         socket.emit('add-decision', args);
         $('#add-decision-modal').modal('hide');
+    });
+
+    socket.on('add-decision', function(data) {
+        nodeMonitor.postMessage({'add-decision': data});
     });
 
     $('#send-cash-modal form').on('submit', function(event) {
@@ -956,37 +1178,28 @@ nav .cash {
     $('#explore-modal form').on('submit', function(event) {
 
         event.preventDefault();
-        socket.emit('get-block', $('#explore-modal input[name=block-number]').val());
+        socket.emit('explore-block', $('#explore-modal input[name=block-number]').val());
+    });
+
+    socket.on('show-block', function(data) {
+        $('#explore-modal pre').text(data);
     });
 
 
     $('#stop-node').on('click', function() {
+        $(this).button('loading');
         socket.emit('stop');
+    });
+
+    $('#start-node').on('click', function() {
+        $(this).hide();
+        $('#password-form').show();
+        $('#password').focus();
     });
 
     $('#alert').on('closed.bs.alert', function() {
         $('#alert div').empty();
     });
-
-    var blob = new Blob([document.querySelector('#nodeMonitor').textContent]);
-    var nodeMonitor = new Worker(window.URL.createObjectURL(blob));
-
-    nodeMonitor.addEventListener('error', function(e) {
-        console.log('[nodeMonitor error] '+ e.lineno, ' in ', e.filename, ': ', e.message);
-    }, false);
-
-    socket.emit('my_address');
-    socket.emit('info', 'my_address');
-    socket.emit('miner', 'status');
-    socket.emit('blockcount');
-
-    socket.emit('check-status');
-
-    socket.emit('decisions');
-    socket.emit('markets');
-    socket.emit('branches');
-
-    socket.emit('reporting');
 
 })()
 </script>

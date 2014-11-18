@@ -1,17 +1,24 @@
-## Truthcoin-UI
+## Augur-UI
 
 ### Requirements
 
 - Python 2.7
 - [Truthcoin-POW](https://github.com/zack-bitcoin/Truthcoin-POW)
-- Flask
-- Flask-SocketIO
+- git & pip
 
 ### Installation
 
-#### *nix
-- checkout Truthcoin-UI next to Truthcoin-POW (or change config path in app.py)
-- $ cd Truthcoin-UI
+#### Mac OS
+- install Xcode command line tools
+- $ git clone git@github.com:scottzer0/Augur-UI.git
+- $ cd Augur-UI
+- $ sudo pip install -r requirements.txt
+- $ python app.py
+- http://localhost:9000
+
+#### Linix
+- $ git clone git@github.com:scottzer0/Augur-UI.git
+- $ cd Augur-UI
 - $ pip install -r requirements.txt
 - $ python app.py
 - http://localhost:9000

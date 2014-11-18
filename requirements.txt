@@ -1,7 +1,2 @@
 Flask==0.10.1
 Flask-SocketIO==0.4.1
-m3-cdecimal==2.3
-numpy
-six==1.8.0
-leveldb==0.193
-
