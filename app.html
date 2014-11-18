@@ -656,8 +656,6 @@ nav .cash {
 
                         cycle['decisions'] = {};
 
-                        console.log(d);
-
                         if (d['status'] == 'closed' && _.has(account['branches'], d['vote_id'])) {
                             cycle['decisions'][d['decision_id']] = d;
                         };
@@ -821,16 +819,17 @@ nav .cash {
             augur.decisions[tx.decision] = tx;
 
             var tx = {
-                'B': int(m['add-decision']['marketInv']),
+                'B': parseInt(m['add-decision']['marketInv']),
                 'PM_id': m['add-decision']['decisionId'] + '.market',
                 'decisions': [m['add-decision']['decisionId']],
                 'fees': 0,
                 'owner': account.address,
                 'states': ['no', 'yes'],
-                'type': "prediction_market",
+                'type': 'prediction_market',
                 'txt': m['add-decision']['decisionText'],
                 'vote_id': m['add-decision']['branchId'],
                 'maturation': m['add-decision']['decisionMaturation'],
+                'maturation_date': blockTime(m['add-decision']['decisionMaturation']),
                 'status': 'pending'
             }
 
