@@ -30,13 +30,6 @@ h1, h2, h3, h4, h5 {
     font-family: 'Roboto', sans-serif;
     font-weight: 200;
 }
-h3 {
-    margin: 5px 0px 10px 0px;
-}
-h3 span {
-    font-size: 14px;
-    margin-top: 10px;
-}
 h4 a,
 h4 span {
     font-size: 14px;
@@ -48,6 +41,7 @@ table {
 table thead th{
     font-weight: 400;
 }
+
 nav h1 {
     font-size: 24px;
     font-weight: 200;
@@ -60,7 +54,6 @@ nav .cash {
     margin-left: 20px;
     font-weight: bold;
 }
-
 .nav button {
     margin-top: 7px;
 }
@@ -96,10 +89,12 @@ nav .cash {
 .branches.all .other {
     display: block;
 }
+
 #start-node,
 #stop-node {
     margin-top: 0px;
 }
+
 #node-settings-modal .modal-dialog {
     font-size: 14px;
     width: 350px;
@@ -114,10 +109,12 @@ nav .cash {
     top: 0px;
     right: -16px;
 }
+
 #create-branch-modal .modal-dialog {
     width: 400px;
 }
-#explore-modal .modal-dialog {
+#exp
+lore-modal .modal-dialog {
     width: 90%;
 }
 #explore-modal pre {
@@ -129,13 +126,16 @@ nav .cash {
 #explore-modal .input-group {
     width: 250px;
 }
+
 #send-cash-modal #dest-address {
     width: 290px;
 }
+
 .address {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
 .network .miner-off span {
     color: red;
 }
@@ -153,9 +153,12 @@ nav .cash {
     font-size: 12px;
     margin-bottom: 10px;
 }
+
 .reporting {
-    display: none;
     margin-bottom: 30px;
+}
+.reporting #report {
+    display: none;
 }
 .reporting #report-decisions {
     margin-bottom: 0px;
@@ -170,31 +173,19 @@ nav .cash {
 .reporting label {
     font-size: 14px;
 }
-.reporting button[type=submit] {
-    position: relative;
-    top: -1px;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-}
-.reporting #reveal-button {
-    display: none;
-}
 .reporting .my-choice {
     display: none;
     font-weight: bold;
     margin-bottom: 0px;
 }
-.reporting.reported #report-button {
-    display: none;
+.reporting h3 {
+    margin: 5px 0px 25px 0px;
+    font-size: 22px;
 }
-.reporting.reported #reveal-button {
-    display: inline-block;
-}
-.reporting.reported .my-choice {
-    display: block;
-}
-.reporting.reported label {
-    display: none;
+.reporting h3 span {
+    font-size: 14px;
+    margin-top: 10px;
+    margin-left: 10px;
 }
 
 .spin {
@@ -206,6 +197,7 @@ nav .cash {
     -o-animation: spin 1s infinite linear;
     animation: spin 1s infinite linear;
 }
+
 #alert {
     padding: 10px;
     position: fixed;
@@ -236,7 +228,7 @@ nav .cash {
             </div>
             <ul class="nav navbar-nav navbar-right">
                 <li>
-                    <button class="btn btn-danger" data-toggle="modal" data-target="#node-settings-modal">
+                    <button class="btn" style="display: none;" data-toggle="modal" data-target="#node-settings-modal">
                         <span class="status"></span>
                         <span class="glyphicon glyphicon-cog"></span>
                     </button>
@@ -284,23 +276,27 @@ nav .cash {
                 
                 <div class="reporting">
                     <h3 class="clearfix"></h3>
-                    <form method='POST' class="clearfix" id="report" style="display: none;">
+                    <div id="report" style="display: none;">
                         <ul class="list-group" id="report-decisions"></ul>
                         <script type="text/template" id="report-template">
                             <li class="list-group-item">
                                 <p><%= d.txt %></p>
-                                <label class="radio-inline"><input type="radio" name="<%= d.decision_id %>" value='yes'>True</label>
-                                <label class="radio-inline"><input type="radio" name="<%= d.decision_id %>" value='no'>False</label>
-                                <label class="radio-inline"><input type="radio" name="<%= d.decision_id %>" value='unknown'>
-                                    Ambiguous or Indeterminent
-                                </label>
+                                <div class="btn-group" data-toggle="buttons">
+                                    <label class="btn btn-default btn-sm">
+                                        <input type="radio" name="<%= d.decision_id %>" id="option1" value='1' autocomplete="off">True
+                                    </label>
+                                    <label class="btn btn-default btn-sm">
+                                        <input type="radio" name="<%= d.decision_id %>" id="option2" value='0' autocomplete="off"> False
+                                    </label>
+                                    <label class="btn btn-default btn-sm">
+                                        <input type="radio" name="<%= d.decision_id %>" id="option3" value='0.5' autocomplete="off">Ambiguous or Indeterminent
+                                    </label>
+                                </div>
                                 <p class="my-choice"><%= d.my_choice %></p>
                             </li>
                         </script>
-                        <button type="submit" class="btn btn-primary pull-right" id="report-button">SUBMIT REPORT</button>
-                        <button type="submit" class="btn btn-success pull-right" id="reveal-button">REVEAL REPORT</button>
                         <p id="error" class="hidden pull-right"></p>
-                    </form>
+                    </div>
                 </div>
 
                 <h4 class="clearfix">Decisions <a href="#add-decision-modal" data-toggle="modal" class="pull-right">Add decision</a>
@@ -539,16 +535,6 @@ nav .cash {
         </div>
     </div>  
 
-    <div id="na-modal" class="modal fade">
-        <div class="modal-dialog model-sm">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <h4 class="text-center">Not yet implemented</h4>
-                </div>
-            </div>
-        </div>
-    </div>
-
 
 <script id="nodeMonitor" type="javascript/worker">
 
@@ -568,9 +554,10 @@ nav .cash {
         markets: {},
         blockcount: 0,
         network_blockcount: 0,
-        running: false,
         starting: false,
-        market_queue: {}
+        current: false,
+        market_queue: {},
+        force: false
     }
 
     var cycle = {
@@ -605,100 +592,105 @@ nav .cash {
 
     socket.on('blockcount', function (count) {
 
-        if (augur.blockcount != count) {
+        if (augur.blockcount != count || augur.force) {
+
+            augur.force = false;
 
             var prev_blockcount = augur.blockcount;
-            var start_block = prev_blockcount + 1
+            var start_block = prev_blockcount + 1;
 
             augur.blockcount = count;
             self.postMessage({'blockcount': count});
 
             socket.emit('update-account');
-            console.log('[nodeMonitor] fetching blocks '+ start_block +' - '+augur.blockcount);
 
             // examine new blocks
+            console.log('[nodeMonitor] fetching blocks '+ start_block +' - '+augur.blockcount);
             for (i = start_block; i <= augur.blockcount; i++) {
                 socket.emit('get-block', i);
             }
 
             // check for maturing decisions
+            var changes = false;
             _.each(augur.decisions, function(d) {
-                if (d['status'] == 'open' && d['maturation'] >= augur.network_blockcount) {
-                    d['status'] == 'closed';
+                if (d['status'] == 'open' && d['maturation'] <= augur.network_blockcount) {
+                    changes = true;
+                    augur.decisions[d['decision_id']]['status'], d['status'] = 'closed';
+
+                    // update associated market
+                    augur.markets[d['decision_id']] = _.extend(augur.markets[d['decision_id']], d);
                 }
             });
+            // update DOM if there are changes
+            if (changes) self.postMessage({'markets': augur.markets});
 
             // check cycle reporting phase
             cycle_count = parseInt(augur.network_blockcount / REPORT_CYCLE);
             cycle_blockcount = augur.network_blockcount - (cycle_count * REPORT_CYCLE);
+            cycle['end_block'] = (cycle_count + 1) * REPORT_CYCLE;
+            cycle['end_date'] = blockTime((cycle_count + 1) * REPORT_CYCLE);
+            cycle['phase'] = '';
 
-            // reporting phase
-            if (cycle_count != cycle['count']) {   // we're in a new cycle
+            if (augur.current) {   // only reveal reporting details if we have parsed the blockchain and are current
 
-                old_cycle_count = cycle['count'];
-
-                cycle['count'] = cycle_count;
-                cycle['reported'] = false;
                 cycle['phase'] = 'reporting';
 
-                console.log("[nodeMonitor] reporting cycle " + cycle['count']);
+                // reporting phase
+                if (cycle_count != cycle['count']) {   // we're in a new cycle 
 
-                cycle['end_block'] = (cycle_count + 1) * REPORT_CYCLE;
-                cycle['end_date'] = blockTime((cycle_count + 1) * REPORT_CYCLE);
+                    old_cycle_count = cycle['count'];
 
-                if (cycle_count != 0) {
+                    cycle['count'] = cycle_count;
+                    cycle['reported'] = false;
+                    console.log("[nodeMonitor] reporting cycle " + cycle['count']);
 
                     cycle['last_end_block'] = cycle_count * REPORT_CYCLE;
                     cycle['last_end_date'] = blockTime(cycle_count * REPORT_CYCLE);
-
+                
                     // collect reporting decisions
+                    cycle['decisions'] = {};
                     _.each(augur.decisions, function(d) {
-
-                        cycle['decisions'] = {};
-
-                        if (d['status'] == 'closed' && _.has(account['branches'], d['vote_id'])) {
+                        if (d['status'] == 'closed' && _.has(account['branches'], d['vote_id']) && _.has(augur.markets, d['decision_id'])) {
                             cycle['decisions'][d['decision_id']] = d;
                         };
                     });
-                }
 
-            // reveal phase
-            } else if (cycle_blockcount > REPORT_CYCLE * 0.875 && cycle_blockcount < REPORT_CYCLE * 0.975 && cycle['phase'] != 'reveal') {   
+                // reveal phase
+                } else if (cycle_blockcount > REPORT_CYCLE * 0.875 && cycle_blockcount < REPORT_CYCLE * 0.975 && cycle['phase'] != 'reveal') {   
 
-                cycle['phase'] = 'reveal';
+                    cycle['phase'] = 'reveal';
 
-                // reveal votes if reported
-                if (cycle['reported']) {
+                    // reveal votes if reported
+                    if (cycle['reported']) {
+
+                        _.each(cycle['decisions'], function(d) {
+
+                            socket.emit('reveal-vote', d['vote_id'], d['decision_id']);
+                            console.log('[nodeMonitor] revealing vote ('+d['decision_id']+') in '+d['vote_id']);
+                        });
+                    }
+
+                // SVD phase
+                } else if (cycle_blockcount >= REPORT_CYCLE * 0.975 && cycle['phase'] != 'svd') {
+
+                    cycle['phase'] = 'svd';
+
+                    // collect all branches voted on
+                    branches = {}
 
                     _.each(cycle['decisions'], function(d) {
 
-                        socket.emit('reveal-vote', d['vote_id'], d['decision_id']);
-                        console.log('[nodeMonitor] revealing vote ('+d['decision_id']+') in '+d['vote_id']);
+                        branches[d['vote_id']] = true;
 
-                        self.postMessage({'report': cycle});
+                        // dedupe list and do SVD concensus on all voted branches
+                        _.each(branches.keys(), function(branch) {
+
+                            socket.emit('svd-consensus', branch);
+                            console.log('[nodeMonitor] svd consensus for ' + branch);
+
+                        });
                     });
                 }
-
-            // SVD phase
-            } else if (cycle_blockcount >= REPORT_CYCLE * 0.975 && cycle['phase'] != 'svd') {
-
-                cycle['phase'] = 'svd';
-
-                // collect all branches voted on
-                branches = {}
-
-                _.each(cycle['decisions'], function(d) {
-
-                    branches[d['vote_id']] = true;
-
-                    // dedupe list and do SVD concensus on all voted branches
-                    _.each(branches.keys(), function(branch) {
-
-                        socket.emit('svd-consensus', branch);
-                        console.log('[nodeMonitor] svd consensus for ' + branch);
-
-                    });
-                });
             }
 
             // update reporting
@@ -720,31 +712,26 @@ nav .cash {
                 if (tx['type'] == 'propose_decision') {
 
                     tx['status'] = tx['maturation'] > augur.network_blockcount ? 'open' : 'closed';
+                    tx['maturation_date'] = blockTime(tx['maturation']);
                     augur.decisions[tx['decision_id']] = tx;
 
                     // check to see if we're waiting for this decision to show up
                     if (augur.market_queue[tx['decision_id']]) {
 
                         socket.emit('add-market', augur.market_queue[tx['decision_id']]);
-                        delete account.branches[tx.vote_id];
+                        delete augur.market_queue[tx['decision_id']]
                     }
 
-                    messages.push('New decision added: ' + tx['txt'] + ' (' + tx['decision_id'] + ')');
+                    messages.push('New decision: ' + tx['txt'] + ' (' + tx['decision_id'] + ')');
 
                 } else if (tx['type'] == 'prediction_market') {
 
-                    augur.markets[tx['PM_id']] = tx;
-
-                    // add extra decision data
                     var decision_id = tx['decisions'][0];
-                    augur.markets[tx['PM_id']]['txt'] = augur.decisions[decision_id]['txt'];
-                    augur.markets[tx['PM_id']]['vote_id'] = augur.decisions[decision_id]['vote_id'];
-                    augur.markets[tx['PM_id']]['maturation'] = augur.decisions[decision_id]['maturation'];
-                    augur.markets[tx['PM_id']]['maturation_date'] = blockTime(augur.decisions[decision_id]['maturation']);
-                    augur.markets[tx['PM_id']]['status'] = augur.decisions[decision_id]['status'];
+
+                    // augment market data with decision data
+                    augur.markets[decision_id] = _.extend(tx, augur.decisions[decision_id]);
 
                     self.postMessage({'markets': augur.markets});
-                    messages.push('New market added: ' + tx['PM_id']);
 
                 } else if (tx['type'] == 'create_jury') {
 
@@ -756,7 +743,7 @@ nav .cash {
                     }
 
                     self.postMessage({'branches': augur.branches});
-                    messages.push('New branch added: ' + tx['vote_id']);
+                    messages.push('New branch: ' + tx['vote_id']);
 
                 } else if (tx['type'] == 'spend') {
 
@@ -769,6 +756,12 @@ nav .cash {
 
                 }
             });
+
+            // check to see if we have caught up and loaded all txs
+            if (block['length'] == augur.network_blockcount) {
+                augur.current = true;
+                augur.force = true;
+            }
 
             if (messages.length) self.postMessage({'alert': {'type': 'info', 'messages': messages}});
         }      
@@ -795,17 +788,19 @@ nav .cash {
     socket.on('node-down', function() {
 
         // check to see if we were already running
-        if  (augur.running) {
+        if  (augur.running || !_.has(augur, 'running')) {
 
             self.postMessage({'node-down': true});   
             augur.running = false;
         }
     });
 
+    // message listeners from DOM script
     self.addEventListener('message', function(message) {
 
         var m = message.data;
 
+        // adding a pending decision to list until the blockchain confirms it
         if (m && m['add-decision']) {
 
             var tx = {
@@ -816,12 +811,13 @@ nav .cash {
                 'status': 'pending'
             }
 
-            augur.decisions[tx.decision] = tx;
+            augur.decisions[tx.decision_id] = tx;
 
             var tx = {
                 'B': parseInt(m['add-decision']['marketInv']),
                 'PM_id': m['add-decision']['decisionId'] + '.market',
                 'decisions': [m['add-decision']['decisionId']],
+                'decision_id': m['add-decision']['decisionId'],
                 'fees': 0,
                 'owner': account.address,
                 'states': ['no', 'yes'],
@@ -833,7 +829,7 @@ nav .cash {
                 'status': 'pending'
             }
 
-            augur.markets[tx.PM_id] = tx;
+            augur.markets[tx.decision_id] = tx;
             self.postMessage({'markets': augur.markets});
 
             augur.market_queue[m['add-decision'].decisionId] = m['add-decision'];
@@ -851,6 +847,8 @@ nav .cash {
     var socket = io.connect(location.origin + '/socket.io/');
 
     function formatDate(d) {
+
+        if (!d) return '-';
 
         months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Oct','Sep','Nov','Dec'];
 
@@ -893,9 +891,10 @@ nav .cash {
 
             $('#main').show();
             $('#node-settings-modal').modal('hide');
-            $('.nav button').addClass('btn-success')
-            $('.nav button').removeClass('btn-warning')
-            $('.nav button').removeClass('btn-danger')
+            $('.nav button').addClass('btn-success');
+            $('.nav button').removeClass('btn-warning');
+            $('.nav button').removeClass('btn-danger');
+            $('.nav button').show();
             $('#node-settings-modal .btn-success').hide();
             $('#node-settings-modal .btn-danger').show();
             $('#start-node').button('reset');
@@ -905,6 +904,7 @@ nav .cash {
             $('.nav button').removeClass('btn-success');
             $('.nav button').addClass('btn-warning');
             $('.nav button').removeClass('stopped');
+            $('.nav button').show();
             //$('#main').show();   // show the dash while starting up or not?
 
         } else if (m['node-down']) {
@@ -912,8 +912,9 @@ nav .cash {
             $('#main').hide();
             $('#node-settings-modal').modal('hide');
             $('.nav button').removeClass('btn-success');
-            $('.nav button').removeClass('btn-danger');
+            $('.nav button').removeClass('btn-warning');
             $('.nav button').addClass('btn-danger');
+            $('.nav button').show();
             $('#node-settings-modal .btn-success').show();
             $('#node-settings-modal .btn-danger').hide();
             $('#stop-node').button('reset');
@@ -931,31 +932,25 @@ nav .cash {
 
             if (!$.isEmptyObject(m['report']['decisions'])) {
 
-                $('#report').show();
-
-                $('.reporting h3').html('Reporting <span class="pull-right">Cycle ending ' + formatDate(m['report'].last_end_date) + '</span>');
-
-                if (m['report'].reported && !m['report'].phase) {
-                    $('.reporting').addClass('reported');
-                    $('#reveal-button').attr('disabled', 'true');
-                } else if (m['report'].phase == 'reporting') {
-                    $('.reporting').removeClass('reported');
-                    $('#reveal-button').removeAttr('disabled');
-                }
-
                 $('#report-decisions').empty();
 
+                var h = 'Report for cycle ending ' + formatDate(m['report'].last_end_date);
+                var report_header = $('<li>').addClass('list-group-item').html('<h4>'+h+'</h4>');
+                $('#report-decisions').append(report_header);
                 var template = _.template($("#report-template").html());
                 _.each(m['report']['decisions'], function(d, id) {
                     $('#report-decisions').append(template({'d': d}));
                 });
 
+                $('#report').show();
+
             } else {
 
                 $('#report').hide();
-
-                $('.reporting h3').html('Cycle ending ' + formatDate(m['report'].end_date));
             }
+
+
+            $('.reporting h3').html('Cycle ending '+formatDate(m['report'].end_date)).append($('<span>').text(m['report'].phase));
 
             $('.reporting').show();
  

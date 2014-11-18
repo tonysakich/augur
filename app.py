@@ -297,16 +297,16 @@ def get_account():
         # update tx count for push_tx commands (%$^#%$^)
         api.tx_count = data['count']
 
-    account = {
-        'address': api.address,
-        'privkey': api.privkey,
-        'pubkey': api.pubkey,
-        'cash': data['amount'],
-        'shares': data['shares'],
-        'branches': data['votecoin']
-    }
+        account = {
+            'address': api.address,
+            'privkey': api.privkey,
+            'pubkey': api.pubkey,
+            'cash': data['amount'],
+            'shares': data['shares'],
+            'branches': data['votecoin']
+        }
 
-    emit('account', account)
+        emit('account', account)
 
 
 @socketio.on('update-account', namespace='/socket.io/')
