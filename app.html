@@ -574,7 +574,8 @@ nav .cash {
     }
 
     var cycle = {
-        count: 0
+        count: 0,
+        decisions: {}
     };
 
     var account = {};
@@ -643,18 +644,22 @@ nav .cash {
                 console.log("[nodeMonitor] reporting cycle " + cycle['count']);
 
                 cycle['end_block'] = (cycle_count + 1) * REPORT_CYCLE;
+                cycle['end_date'] = blockTime((cycle_count + 1) * REPORT_CYCLE);
 
                 if (cycle_count != 0) {
 
                     cycle['last_end_block'] = cycle_count * REPORT_CYCLE;
+                    cycle['last_end_date'] = blockTime(cycle_count * REPORT_CYCLE);
 
                     // collect reporting decisions
                     _.each(augur.decisions, function(d) {
 
-                        account['decisions'] = {};
+                        cycle['decisions'] = {};
+
+                        console.log(d);
 
                         if (d['status'] == 'closed' && _.has(account['branches'], d['vote_id'])) {
-                            account['decisions'][d['decision_id']] = d;
+                            cycle['decisions'][d['decision_id']] = d;
                         };
                     });
                 }
@@ -667,12 +672,12 @@ nav .cash {
                 // reveal votes if reported
                 if (cycle['reported']) {
 
-                    _.each(account['decisions'], function(d) {
+                    _.each(cycle['decisions'], function(d) {
 
                         socket.emit('reveal-vote', d['vote_id'], d['decision_id']);
                         console.log('[nodeMonitor] revealing vote ('+d['decision_id']+') in '+d['vote_id']);
 
-                        // message to update report
+                        self.postMessage({'report': cycle});
                     });
                 }
 
@@ -684,7 +689,7 @@ nav .cash {
                 // collect all branches voted on
                 branches = {}
 
-                _.each(account['decisions'], function(d) {
+                _.each(cycle['decisions'], function(d) {
 
                     branches[d['vote_id']] = true;
 
@@ -694,10 +699,12 @@ nav .cash {
                         socket.emit('svd-consensus', branch);
                         console.log('[nodeMonitor] svd consensus for ' + branch);
 
-                        // message to update report
                     });
                 });
             }
+
+            // update reporting
+            self.postMessage({'report': cycle});
         }
     });
 
@@ -732,7 +739,6 @@ nav .cash {
 
                     // add extra decision data
                     var decision_id = tx['decisions'][0];
-                    console.log(augur.decisions[decision_id]);
                     augur.markets[tx['PM_id']]['txt'] = augur.decisions[decision_id]['txt'];
                     augur.markets[tx['PM_id']]['vote_id'] = augur.decisions[decision_id]['vote_id'];
                     augur.markets[tx['PM_id']]['maturation'] = augur.decisions[decision_id]['maturation'];
@@ -928,12 +934,12 @@ nav .cash {
 
                 $('#report').show();
 
-                $('.reporting h3').html('Reporting <span class="pull-right">Cycle ending ' + formatDate(cycle.last_end_date) + '</span>');
+                $('.reporting h3').html('Reporting <span class="pull-right">Cycle ending ' + formatDate(m['report'].last_end_date) + '</span>');
 
-                if (cycle.reported && !cycle.phase) {
+                if (m['report'].reported && !m['report'].phase) {
                     $('.reporting').addClass('reported');
                     $('#reveal-button').attr('disabled', 'true');
-                } else if (cycle.phase == 'reporting') {
+                } else if (m['report'].phase == 'reporting') {
                     $('.reporting').removeClass('reported');
                     $('#reveal-button').removeAttr('disabled');
                 }
@@ -941,7 +947,7 @@ nav .cash {
                 $('#report-decisions').empty();
 
                 var template = _.template($("#report-template").html());
-                _.each(cycle.reporting, function(d, id) {
+                _.each(m['report']['decisions'], function(d, id) {
                     $('#report-decisions').append(template({'d': d}));
                 });
 
@@ -949,7 +955,7 @@ nav .cash {
 
                 $('#report').hide();
 
-                $('.reporting h3').html('Cycle ending ' + formatDate(cycle.end_date));
+                $('.reporting h3').html('Cycle ending ' + formatDate(m['report'].end_date));
             }
 
             $('.reporting').show();
@@ -1017,8 +1023,6 @@ nav .cash {
 
                 $('.decisions').empty();
                 _.each(m['markets'], function(m) {
-
-                    console.log(m.status);
 
                     var states = $('<select>').addClass('states, form-control').attr('name', 'market-state');
                     _.each(m['states'], function(state) {
