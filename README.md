@@ -9,7 +9,7 @@
 ### Installation
 
 #### Mac OS
-- install Xcode command line tools
+- install [Xcode command line tools](https://developer.apple.com/downloads/)
 - $ git clone git@github.com:scottzer0/Augur-UI.git
 - $ cd Augur-UI
 - $ sudo pip install -r requirements.txt
