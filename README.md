@@ -16,7 +16,7 @@
 - $ python app.py
 - http://localhost:9000
 
-#### Linix
+#### Linux
 - $ git clone git@github.com:scottzer0/Augur-UI.git
 - $ cd Augur-UI
 - $ pip install -r requirements.txt
