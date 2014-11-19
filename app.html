@@ -26,10 +26,23 @@ body {
     font-family: 'Roboto', sans-serif;
     font-weight: 200;
 }
+body.stopped #main {
+    display: none;
+}
+body.stopped #logo {
+    display: block;
+}
+body.running #main {
+    display: block;
+}
+body.running #logo {
+    display: none;
+}
 h1, h2, h3, h4, h5 {
     font-family: 'Roboto', sans-serif;
     font-weight: 200;
 }
+
 h4 a,
 h4 span {
     font-size: 14px;
@@ -42,10 +55,12 @@ table thead th{
     font-weight: 400;
 }
 
-nav h1 {
-    font-size: 24px;
+h1.navbar-brand {
+    font-size: 26px;
     font-weight: 200;
     margin: 0px 0px 0px 0px;
+    position: relative;
+    top: -3px;
 }
 nav h1 span {
     font-weight: 400;
@@ -153,43 +168,44 @@ nav .cash {
     margin-bottom: 10px;
 }
 
-.reporting {
+.cycle {
     margin-bottom: 30px;
 }
-.reporting #report {
+.cycle #report {
     display: none;
 }
-.reporting #report-decisions {
+.cycle #report-decisions {
     margin-bottom: 0px;
 }
-.reporting #report-decisions li {
+.cycle #report-decisions li {
     background-color: rgb(255, 255, 228);
 }
-.reporting #report-decisions li:last-child {
+.cycle #report-decisions li:last-child {
     border-bottom-right-radius: 0; 
 }
-.reporting p,
-.reporting label {
+.cycle p,
+.cycle label {
     font-size: 14px;
 }
-.reporting .my-choice {
+.cycle .my-choice {
     display: none;
     font-weight: bold;
     margin-bottom: 0px;
 }
-.reporting.reveal .my-choice,
-.reporting.svd .my-choice {
+.cycle.reveal .my-choice,
+.cycle.svd .my-choice {
     display: inline-block;
 }
-.reporting.reveal label,
-.reporting.svd label {
+.cycle.reveal label,
+.cycle.svd label {
     display: none;
 }
-.reporting h3 {
-    margin: 5px 0px 25px 0px;
+.cycle h3 {
+    margin: 5px 0px 10px 0px;
     font-size: 22px;
 }
-.reporting h3 span {
+.cycle h3 span,
+.cycle h3 i {
     font-size: 14px;
     margin-top: 10px;
     margin-left: 10px;
@@ -224,14 +240,29 @@ nav .cash {
     font-size: 13px;
     margin-bottom: 5px;
 }
+.progress {
+    height: 6px;
+}
+#logo {
+    font-size: 363px;
+    width: 300px;
+    margin: 0% auto 0px auto;
+    text-align: center;
+    font-weight: 400;
+    line-height: 1em;
+    color: rgb(209, 231, 231);
+    position: relative;
+    top: 50%;
+    transform: translateY(0%);
+}
 </style>
 
-<body>
+<body class="stopped">
 
     <nav class="navbar navbar-default" role="navigation">
         <div class="container">
             <div class="navbar-header">
-                <h1 class="navbar-brand"><span>Augur</span></h1>
+                <h1 class="navbar-brand"><span>ḁugur</span></h1>
             </div>
             <ul class="nav navbar-nav navbar-right">
                 <li>
@@ -245,7 +276,8 @@ nav .cash {
         
     </nav>
 
-    <section id="main" class="container" style="display:none;">
+    <section id="logo" class="container">ḁ</section>
+    <section id="main" class="container">
 
         <div class="dash page row">
 
@@ -281,25 +313,29 @@ nav .cash {
           
             <div class="col-sm-9">
           
-                <div class="reporting">
+                <div class="cycle">
                     <h3 class="clearfix"></h3>
+                    <script type="text/template" id="progress-template">
+                        <div class="progress-bar <%= type %>" role="progressbar" aria-valuenow="<%= percent %>" aria-valuemin="0" aria-valuemax="100" style="width: <%= percent %>%;">
+                        </div>
+                    </script>
+                    <div class="progress"></div>
                     <div id="report" style="display: none;">
                         <ul class="list-group" id="report-decisions"></ul>
                         <script type="text/template" id="report-template">
                             <li class="list-group-item">
                                 <p><%= d.txt %></p>
                                 <label class="radio-inline">
-                                    <input type="radio" name="<%= d.decision_id %>" value='1' <% if (d.state) { %>disabled<% }; %> <% if (d.state == '1') { %>checked<% }; %>> True
+                                    <input type="radio" name="<%= d.decision_id %>" value="1" <% if (d.state == '1') { %>checked<% }; %>> True
                                 </label>
                                 <label class="radio-inline">
-                                    <input type="radio" name="<%= d.decision_id %>" value='0' <% if (d.state) { %>disabled<% }; %> <% if (d.state == '0') { %>checked<% }; %>> False
+                                    <input type="radio" name="<%= d.decision_id %>" value="0" <% if (d.state == '0') { %>checked<% }; %>> False
                                 </label>
                                 <label class="radio-inline">
-                                    <input type="radio" name="<%= d.decision_id %>" value='0.5' <% if (d.state) { %>disabled<% }; %><% if (d.state == '0.5') { %>checked<% }; %>> Ambiguous or Indeterminent
+                                    <input type="radio" name="<%= d.decision_id %>" value="0.5" <% if (d.state == '0.5') { %>checked<% }; %>> Ambiguous or Indeterminent
                                 </label>
                                 <p class="my-choice"><%= d.state_desc %></p>
                             </li>
-                            
                         </script>
                         <p id="error" class="hidden pull-right"></p>
                     </div>
@@ -632,7 +668,7 @@ nav .cash {
 
             // check cycle reporting phase
             cycle_count = parseInt(augur.network_blockcount / REPORT_CYCLE);
-            cycle_blockcount = augur.network_blockcount - (cycle_count * REPORT_CYCLE);
+            cycle['block'] = augur.network_blockcount - (cycle_count * REPORT_CYCLE);
             cycle['end_block'] = (cycle_count + 1) * REPORT_CYCLE;
             cycle['end_date'] = blockTime((cycle_count + 1) * REPORT_CYCLE);
             cycle['last_end_block'] = cycle_count * REPORT_CYCLE;
@@ -641,19 +677,14 @@ nav .cash {
             cycle['reveal_date'] = blockTime(cycle['reveal_block']);
             cycle['svd_block'] = parseInt(cycle['last_end_block'] + REPORT_CYCLE * 0.975);
             cycle['svd_date'] = blockTime(cycle['svd_block']);
-            cycle['phase'] = '';
+            cycle['percent'] = parseInt((cycle['block'] / REPORT_CYCLE) * 100);
+            cycle['phase'] = 'catching up';
 
             if (augur.current) {   // only reveal reporting details if we have parsed the blockchain and are current
 
-                cycle['phase'] = 'reporting';
-
-                // reporting phase
                 if (cycle_count != cycle['count']) {   // we're in a new cycle 
 
-                    old_cycle_count = cycle['count'];
-
                     cycle['count'] = cycle_count;
-                    cycle['reported'] = false;
                     console.log("[nodeMonitor] reporting cycle " + cycle['count']);
                 
                     // collect reporting decisions
@@ -663,21 +694,31 @@ nav .cash {
                             cycle['decisions'][d['decision_id']] = d;
                         };
                     });
+                }
+
+                // reporting phase
+                if (augur.blockcount < cycle['reveal_block'] && cycle['phase'] != 'reporting') {  
+
+                    cycle['phase'] = 'reporting';
+
+                    // update reporting
+                    self.postMessage({'report': cycle});
 
                 // reveal phase
-                } else if (augur.blockcount > cycle['reveal_block'] && augur.blockcount < cycle['svd_block'] && cycle['phase'] != 'reveal') {   
+                } else if (augur.blockcount >= cycle['reveal_block'] && augur.blockcount < cycle['svd_block'] && cycle['phase'] != 'reveal') {   
 
                     cycle['phase'] = 'reveal';
 
-                    // reveal votes if reported
-                    if (cycle['reported']) {
-
-                        _.each(cycle['decisions'], function(d) {
-
+                    // reveal reports
+                     _.each(cycle['decisions'], function(d) {
+                        if (d.state) {   // we have reported on this decision 
                             socket.emit('reveal-vote', d['vote_id'], d['decision_id']);
                             console.log('[nodeMonitor] revealing vote ('+d['decision_id']+') in '+d['vote_id']);
-                        });
-                    }
+                        }
+                    });
+
+                    // update reporting
+                    self.postMessage({'report': cycle});
 
                 // SVD phase
                 } else if (augur.blockcount >= cycle['svd_block'] && cycle['phase'] != 'svd') {
@@ -693,16 +734,17 @@ nav .cash {
 
                         // dedupe list and do SVD concensus on all voted branches
                         _.each(Object.keys(branches), function(branch) {
-
                             socket.emit('svd-consensus', branch);
                             console.log('[nodeMonitor] svd consensus for ' + branch);
                         });
                     });
+
+                    // update reporting
+                    self.postMessage({'report': cycle});
                 }
             }
 
-            // update reporting
-            self.postMessage({'report': cycle});
+            self.postMessage({'cycle': cycle});   // update cycle data
         }
     });
 
@@ -904,7 +946,7 @@ nav .cash {
 
         } else if (m['node-up']) {
 
-            $('#main').show();
+            $('body').removeClass('stopped').addClass('running');
             $('#node-settings-modal').modal('hide');
             $('.nav button').addClass('btn-success');
             $('.nav button').removeClass('btn-warning');
@@ -924,7 +966,7 @@ nav .cash {
 
         } else if (m['node-down']) {
 
-            $('#main').hide();
+            $('body').removeClass('running').addClass('stopped');
             $('#node-settings-modal').modal('hide');
             $('.nav button').removeClass('btn-success');
             $('.nav button').removeClass('btn-warning');
@@ -943,9 +985,24 @@ nav .cash {
                 $('.peers').append(p);
             });
 
+        } else if (m['cycle']) {
+
+            if (m['cycle'].phase == 'catching up') {
+                var phase = $('<i>').text(m['cycle'].phase);
+            } else {
+                var phase = $('<span>').text(m['cycle'].phase);
+            }
+            $('.cycle h3').html('Cycle ending ' + formatDate(m['cycle'].end_date)).append(phase);
+
+            var template = _.template($("#progress-template").html());
+            $('.cycle .progress').empty();
+            $('.cycle .progress').append(template({'type': '', 'percent': m['cycle']['percent']}))
+
+            $('.cycle').show();
+
         } else if (m['report']) {
 
-            $('.reporting').removeClass('reveal').removeClass('svd').addClass(m['report']['phase']);
+            $('.cycle').removeClass('reporting').removeClass('reveal').removeClass('svd').addClass(m['report']['phase']);
 
             if (!$.isEmptyObject(m['report']['decisions'])) {
 
@@ -970,10 +1027,17 @@ nav .cash {
 
                 $('#report input[name]').on('change', function(e) {
 
-                    var report = {'decision_id': $(this).attr('name'), 'state': $(this).val()};
-                    nodeMonitor.postMessage({'report-decision': report});
+                    if ($('#report input[name='+report.decision_id+']').val()) {
 
-                    $('#report input[name='+report.decision_id+']').attr('disabled', true);
+                        $('#report input[name='+report.decision_id+']').val();
+
+                    } else {
+
+                        var report = {'decision_id': $(this).attr('name'), 'state': $(this).val()};
+                        nodeMonitor.postMessage({'report-decision': report});
+
+                        //$('#report input[name='+report.decision_id+']').attr('disabled', true);
+                    }
                 });
 
 
@@ -981,11 +1045,6 @@ nav .cash {
 
                 $('#report').hide();
             }
-
-
-            $('.reporting h3').html('Cycle ending '+formatDate(m['report'].end_date)).append($('<span>').text(m['report'].phase));
-
-            $('.reporting').show();
  
         } else if (m['branches']) {
 
