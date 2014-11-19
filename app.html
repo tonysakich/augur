@@ -1008,7 +1008,7 @@ nav .cash {
 
                 $('#report-decisions').empty();
 
-                var h = $('<h4>').html('Report for cycle ending ' + formatDate(m['report'].last_end_date));
+                var h = $('<h4>').html('Report');
                 var s = $('<span>').html('Ends at ' + formatDate(m['report'].reveal_date));
                 var report_header = $('<li>').addClass('list-group-item').append([h, s]);
                 $('#report-decisions').append(report_header);
