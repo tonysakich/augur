@@ -171,6 +171,12 @@ nav .cash {
 .cycle {
     margin-bottom: 30px;
 }
+.cycle .progress-bar.reveal {
+    background-color: rgb(239, 147, 5);
+}
+.cycle .progress-bar.svd {
+    background-color: #000;
+}
 .cycle #report {
     display: none;
 }
@@ -254,6 +260,16 @@ nav .cash {
     position: relative;
     top: 50%;
     transform: translateY(0%);
+}
+#confirm-modal .modal-dialog {
+    width: 400px;
+}
+#confirm-modal button.confirm {
+    margin-left: 10px;
+}
+#confirm-modal .modal-body p {
+    font-size: 16px;
+    margin: 0px;
 }
 </style>
 
@@ -385,6 +401,20 @@ nav .cash {
                             </div>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="modal fade">
+        <div class="modal-dialog model-sm">
+            <div class="modal-content">
+                <div class="modal-body clearfix">
+                    <p class="message"><p>
+                </div>
+                <div class="modal-footer clearfix">
+                    <button class="btn btn-success confirm pull-right" data-dismiss="modal">Okay</button>
+                    <button class="btn btn-default cancel pull-right" data-dismiss="modal">Cancel</button>
                 </div>
             </div>
         </div>
@@ -677,7 +707,7 @@ nav .cash {
             cycle['reveal_date'] = blockTime(cycle['reveal_block']);
             cycle['svd_block'] = parseInt(cycle['last_end_block'] + REPORT_CYCLE * 0.975);
             cycle['svd_date'] = blockTime(cycle['svd_block']);
-            cycle['percent'] = parseInt((cycle['block'] / REPORT_CYCLE) * 100);
+            cycle['percent'] = (cycle['block'] / REPORT_CYCLE) * 100;
             cycle['phase'] = 'catching up';
 
             if (augur.current) {   // only reveal reporting details if we have parsed the blockchain and are current
@@ -917,6 +947,18 @@ nav .cash {
         return months[d.getMonth()]+' '+d.getDate()+', '+hour+':'+minutes+' '+apm;
     }
 
+    function confirm(args) {
+
+        $('#confirm-modal .message').html(args.message);
+        if (args.cancelText) $('#confirm-modal button.cancel').text(args.cancelText);
+        if (args.confirmText) $('#confirm-modal button.confirm').text(args.confirmText);
+
+        $('#confirm-modal button.confirm').on('click', args.confirmCallback);
+        $('#confirm-modal button.cancel').on('click', args.cancelCallback);
+
+        $('#confirm-modal').modal('show');
+    }
+
     // define node monitoring web worker from script block above and start it
     var blob = new Blob([document.querySelector('#nodeMonitor').textContent]);
     var nodeMonitor = new Worker(window.URL.createObjectURL(blob));
@@ -994,9 +1036,22 @@ nav .cash {
             }
             $('.cycle h3').html('Cycle ending ' + formatDate(m['cycle'].end_date)).append(phase);
 
+            if (m['cycle']['percent'] > 97.5) {
+                var phases = [{name: 'reporting', percent: 87.5}, {name: 'reveal', percent: 10}, {name: 'svd', percent: m['cycle']['percent'] - 97.5}];
+            } else if (m['cycle']['percent'] > 87.5) {
+                var phases = [{name: 'reporting', percent: 87.5}, {name: 'reveal', percent: m['cycle']['percent'] - 87.5}];
+            } else {
+                var phases = [{name: 'reporting', percent: m['cycle']['percent']}];
+            }
+
+            console.log(phases);
+
             var template = _.template($("#progress-template").html());
             $('.cycle .progress').empty();
-            $('.cycle .progress').append(template({'type': '', 'percent': m['cycle']['percent']}))
+            _.each(phases, function(p) {
+                $('.cycle .progress').append(template({'type': p.name, 'percent': p.percent}))
+
+            });
 
             $('.cycle').show();
 
@@ -1027,16 +1082,30 @@ nav .cash {
 
                 $('#report input[name]').on('change', function(e) {
 
-                    if ($('#report input[name='+report.decision_id+']').val()) {
+                    var report = {'decision_id': $(this).attr('name'), 'state': $(this).val()};
+                    var state = $('#report input[name='+$(this).attr('name')+']').attr('data-state');
+                    var self = this;
 
-                        $('#report input[name='+report.decision_id+']').val();
+                    if (state) {
+
+                        var dialog = {
+                            message: 'Changing this decision will incur and additional fee.  Are you sure you wish to change it?',
+                            confirmText: 'Change',
+                            confirmCallback: function() {
+                                nodeMonitor.postMessage({'report-decision': report});
+                                $('#report input[name='+report.decision_id+']').attr('data-state', report.state);
+                            },
+                            cancelCallback: function() {
+                                $('#report input[name='+report.decision_id+'][value="'+state+'"]').attr('checked', true);
+                            }
+                        }
+                        
+                        confirm(dialog);
 
                     } else {
 
-                        var report = {'decision_id': $(this).attr('name'), 'state': $(this).val()};
                         nodeMonitor.postMessage({'report-decision': report});
-
-                        //$('#report input[name='+report.decision_id+']').attr('disabled', true);
+                        $('#report input[name='+report.decision_id+']').attr('data-state', report.state);
                     }
                 });
 
