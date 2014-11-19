@@ -113,8 +113,7 @@ nav .cash {
 #create-branch-modal .modal-dialog {
     width: 400px;
 }
-#exp
-lore-modal .modal-dialog {
+#explore-modal .modal-dialog {
     width: 90%;
 }
 #explore-modal pre {
@@ -178,6 +177,14 @@ lore-modal .modal-dialog {
     font-weight: bold;
     margin-bottom: 0px;
 }
+.reporting.reveal .my-choice,
+.reporting.svd .my-choice {
+    display: inline-block;
+}
+.reporting.reveal label,
+.reporting.svd label {
+    display: none;
+}
 .reporting h3 {
     margin: 5px 0px 25px 0px;
     font-size: 22px;
@@ -210,7 +217,7 @@ lore-modal .modal-dialog {
     display: none;
 }
 #alert div {
-    max-height: 60px;
+    max-height: 45px;
     overflow-y: scroll;
 }
 #alert div p {
@@ -273,7 +280,7 @@ lore-modal .modal-dialog {
             </div>
           
             <div class="col-sm-9">
-                
+          
                 <div class="reporting">
                     <h3 class="clearfix"></h3>
                     <div id="report" style="display: none;">
@@ -281,19 +288,18 @@ lore-modal .modal-dialog {
                         <script type="text/template" id="report-template">
                             <li class="list-group-item">
                                 <p><%= d.txt %></p>
-                                <div class="btn-group" data-toggle="buttons">
-                                    <label class="btn btn-default btn-sm">
-                                        <input type="radio" name="<%= d.decision_id %>" id="option1" value='1' autocomplete="off">True
-                                    </label>
-                                    <label class="btn btn-default btn-sm">
-                                        <input type="radio" name="<%= d.decision_id %>" id="option2" value='0' autocomplete="off"> False
-                                    </label>
-                                    <label class="btn btn-default btn-sm">
-                                        <input type="radio" name="<%= d.decision_id %>" id="option3" value='0.5' autocomplete="off">Ambiguous or Indeterminent
-                                    </label>
-                                </div>
-                                <p class="my-choice"><%= d.my_choice %></p>
+                                <label class="radio-inline">
+                                    <input type="radio" name="<%= d.decision_id %>" value='1' <% if (d.state) { %>disabled<% }; %> <% if (d.state == '1') { %>checked<% }; %>> True
+                                </label>
+                                <label class="radio-inline">
+                                    <input type="radio" name="<%= d.decision_id %>" value='0' <% if (d.state) { %>disabled<% }; %> <% if (d.state == '0') { %>checked<% }; %>> False
+                                </label>
+                                <label class="radio-inline">
+                                    <input type="radio" name="<%= d.decision_id %>" value='0.5' <% if (d.state) { %>disabled<% }; %><% if (d.state == '0.5') { %>checked<% }; %>> Ambiguous or Indeterminent
+                                </label>
+                                <p class="my-choice"><%= d.state_desc %></p>
                             </li>
+                            
                         </script>
                         <p id="error" class="hidden pull-right"></p>
                     </div>
@@ -629,6 +635,12 @@ lore-modal .modal-dialog {
             cycle_blockcount = augur.network_blockcount - (cycle_count * REPORT_CYCLE);
             cycle['end_block'] = (cycle_count + 1) * REPORT_CYCLE;
             cycle['end_date'] = blockTime((cycle_count + 1) * REPORT_CYCLE);
+            cycle['last_end_block'] = cycle_count * REPORT_CYCLE;
+            cycle['last_end_date'] = blockTime(cycle_count * REPORT_CYCLE);
+            cycle['reveal_block'] = parseInt(cycle['last_end_block'] + REPORT_CYCLE * 0.875);
+            cycle['reveal_date'] = blockTime(cycle['reveal_block']);
+            cycle['svd_block'] = parseInt(cycle['last_end_block'] + REPORT_CYCLE * 0.975);
+            cycle['svd_date'] = blockTime(cycle['svd_block']);
             cycle['phase'] = '';
 
             if (augur.current) {   // only reveal reporting details if we have parsed the blockchain and are current
@@ -643,9 +655,6 @@ lore-modal .modal-dialog {
                     cycle['count'] = cycle_count;
                     cycle['reported'] = false;
                     console.log("[nodeMonitor] reporting cycle " + cycle['count']);
-
-                    cycle['last_end_block'] = cycle_count * REPORT_CYCLE;
-                    cycle['last_end_date'] = blockTime(cycle_count * REPORT_CYCLE);
                 
                     // collect reporting decisions
                     cycle['decisions'] = {};
@@ -656,7 +665,7 @@ lore-modal .modal-dialog {
                     });
 
                 // reveal phase
-                } else if (cycle_blockcount > REPORT_CYCLE * 0.875 && cycle_blockcount < REPORT_CYCLE * 0.975 && cycle['phase'] != 'reveal') {   
+                } else if (augur.blockcount > cycle['reveal_block'] && augur.blockcount < cycle['svd_block'] && cycle['phase'] != 'reveal') {   
 
                     cycle['phase'] = 'reveal';
 
@@ -671,7 +680,7 @@ lore-modal .modal-dialog {
                     }
 
                 // SVD phase
-                } else if (cycle_blockcount >= REPORT_CYCLE * 0.975 && cycle['phase'] != 'svd') {
+                } else if (augur.blockcount >= cycle['svd_block'] && cycle['phase'] != 'svd') {
 
                     cycle['phase'] = 'svd';
 
@@ -683,11 +692,10 @@ lore-modal .modal-dialog {
                         branches[d['vote_id']] = true;
 
                         // dedupe list and do SVD concensus on all voted branches
-                        _.each(branches.keys(), function(branch) {
+                        _.each(Object.keys(branches), function(branch) {
 
                             socket.emit('svd-consensus', branch);
                             console.log('[nodeMonitor] svd consensus for ' + branch);
-
                         });
                     });
                 }
@@ -833,6 +841,13 @@ lore-modal .modal-dialog {
             self.postMessage({'markets': augur.markets});
 
             augur.market_queue[m['add-decision'].decisionId] = m['add-decision'];
+
+        } else if (m && m['report-decision']) {
+
+            augur.decisions[m['report-decision']['decision_id']]['state'] = m['report-decision']['stage'];
+
+            var data = _.extend(augur.decisions[m['report-decision']['decision_id']], m['report-decision']);
+            socket.emit('report', data);
         }
     });
 
@@ -884,8 +899,8 @@ lore-modal .modal-dialog {
                 items.push($('<p>').html(message));
             });
             $('#alert div').append(items);
-            $('#alert div').scrollTop($('#alert div')[0].scrollHeight);
             $('#alert').show();
+            $('#alert div').scrollTop($('#alert div')[0].scrollHeight);
 
         } else if (m['node-up']) {
 
@@ -930,19 +945,37 @@ lore-modal .modal-dialog {
 
         } else if (m['report']) {
 
+            $('.reporting').removeClass('reveal').removeClass('svd').addClass(m['report']['phase']);
+
             if (!$.isEmptyObject(m['report']['decisions'])) {
 
                 $('#report-decisions').empty();
 
-                var h = 'Report for cycle ending ' + formatDate(m['report'].last_end_date);
-                var report_header = $('<li>').addClass('list-group-item').html('<h4>'+h+'</h4>');
+                var h = $('<h4>').html('Report for cycle ending ' + formatDate(m['report'].last_end_date));
+                var s = $('<span>').html('Ends at ' + formatDate(m['report'].reveal_date));
+                var report_header = $('<li>').addClass('list-group-item').append([h, s]);
                 $('#report-decisions').append(report_header);
                 var template = _.template($("#report-template").html());
                 _.each(m['report']['decisions'], function(d, id) {
+
+                    if (d['state'] == '0') { d['state_desc'] = 'False' }
+                    else if (d['state'] == '1') { d['state_desc'] = 'True' }
+                    else if (d['state'] == '0.6') { d['state_desc'] = 'Ambiguous or Indeterminent' }
+                    else { d['state_desc'] = 'Absent' }
+
                     $('#report-decisions').append(template({'d': d}));
                 });
 
                 $('#report').show();
+
+                $('#report input[name]').on('change', function(e) {
+
+                    var report = {'decision_id': $(this).attr('name'), 'state': $(this).val()};
+                    nodeMonitor.postMessage({'report-decision': report});
+
+                    $('#report input[name='+report.decision_id+']').attr('disabled', true);
+                });
+
 
             } else {
 
@@ -1182,7 +1215,6 @@ lore-modal .modal-dialog {
     socket.on('show-block', function(data) {
         $('#explore-modal pre').text(data);
     });
-
 
     $('#stop-node').on('click', function() {
         $(this).button('loading');

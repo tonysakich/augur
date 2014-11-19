@@ -353,10 +353,8 @@ def blockcount():
 @socketio.on('report', namespace='/socket.io/')
 def report(report):
 
-    for d in report:
-
-        data = api.send({ 'command': ['vote_on_decision', d['branch'], d['name'], d['value']] })
-        app.logger.debug(data)
+    data = api.send({ 'command': ['vote_on_decision', report['vote_id'], report['decision_id'], report['state']] })
+    app.logger.debug(data)
 
 
 @socketio.on('explore-block', namespace='/socket.io/')
