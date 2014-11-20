@@ -775,6 +775,9 @@ nav .cash {
             }
 
             self.postMessage({'cycle': cycle});   // update cycle data
+
+            // save data to localStorage (must message main thread cause workers can't access storage)
+            //self.postMessage({'save': augur, account, cycle});
         }
     });
 
@@ -920,6 +923,10 @@ nav .cash {
 
             var data = _.extend(augur.decisions[m['report-decision']['decision_id']], m['report-decision']);
             socket.emit('report', data);
+
+        } else if (m && m['load']) {
+
+
         }
     });
 
@@ -973,7 +980,10 @@ nav .cash {
     
         var m = e.data;
 
-        if (m['alert']) {
+        if (m['load']) {
+ 
+
+        } else if (m['alert']) {
 
             $('#alert').removeClass('alert-info').removeClass('alert-success').removeClass('alert-warning').removeClass('alert-danger');
             $('#alert').addClass('alert-'+m.alert['type']);
@@ -1043,8 +1053,6 @@ nav .cash {
             } else {
                 var phases = [{name: 'reporting', percent: m['cycle']['percent']}];
             }
-
-            console.log(phases);
 
             var template = _.template($("#progress-template").html());
             $('.cycle .progress').empty();
@@ -1179,36 +1187,40 @@ nav .cash {
                 $('.decisions').empty();
                 _.each(m['markets'], function(m) {
 
-                    var states = $('<select>').addClass('states, form-control').attr('name', 'market-state');
-                    _.each(m['states'], function(state) {
-                        states.append($('<option>').val(state).text(state));
-                    });
-                    var row = $('<tr>').html('<td>'+m.txt+'</td><td>'+m.vote_id+'</td><td>'+formatDate(m.maturation_date)+'</td>');
-                    var buy = $('<a>').attr('href', '#').text('buy').on('click', function() {
-                        $('#trade-modal .trade-type').text('buy');
-                        $('#trade-modal .market').text(m.PM_id);
-                        $('#trade-market').val(m.PM_id);
-                        $('#trade-type').val('buy');
-                        $('#trade-modal').modal('show');
-                        $('#market-state').empty().append(states);
-                    });
-                    var sell = $('<a>').attr('href', '#').text('sell').on('click', function() {
-                        $('#trade-modal .trade-type').text('sell');
-                        $('#trade-modal .market').text(m.PM_id);
-                        $('#trade-market').val(m.PM_id);
-                        $('#trade-type').val('sell');
-                        $('#trade-modal').modal('show');
-                        $('#market-state').empty().append(states);
-                    });
-                    if (m.status == 'open') {
-                        var trade = $('<td>').append(buy).append(' / ').append(sell).css('text-align', 'right');
-                    } else if (m.status == 'pending') {
-                        var trade = $('<td>').text('pending').css('text-align', 'right');
-                    } else {
-                        var trade = $('<td>').text('closed').css('text-align', 'right');
+                    console.log(m);
+
+                    if (m) {
+                        var states = $('<select>').addClass('states, form-control').attr('name', 'market-state');
+                        _.each(m['states'], function(state) {
+                            states.append($('<option>').val(state).text(state));
+                        });
+                        var row = $('<tr>').html('<td>'+m.txt+'</td><td>'+m.vote_id+'</td><td>'+formatDate(m.maturation_date)+'</td>');
+                        var buy = $('<a>').attr('href', '#').text('buy').on('click', function() {
+                            $('#trade-modal .trade-type').text('buy');
+                            $('#trade-modal .market').text(m.PM_id);
+                            $('#trade-market').val(m.PM_id);
+                            $('#trade-type').val('buy');
+                            $('#trade-modal').modal('show');
+                            $('#market-state').empty().append(states);
+                        });
+                        var sell = $('<a>').attr('href', '#').text('sell').on('click', function() {
+                            $('#trade-modal .trade-type').text('sell');
+                            $('#trade-modal .market').text(m.PM_id);
+                            $('#trade-market').val(m.PM_id);
+                            $('#trade-type').val('sell');
+                            $('#trade-modal').modal('show');
+                            $('#market-state').empty().append(states);
+                        });
+                        if (m.status == 'open') {
+                            var trade = $('<td>').append(buy).append(' / ').append(sell).css('text-align', 'right');
+                        } else if (m.status == 'pending') {
+                            var trade = $('<td>').text('pending').css('text-align', 'right');
+                        } else {
+                            var trade = $('<td>').text('closed').css('text-align', 'right');
+                        }
+                        $(row).append(trade);
+                        $('.decisions').append(row);
                     }
-                    $(row).append(trade);
-                    $('.decisions').append(row);
                 });
             }
 

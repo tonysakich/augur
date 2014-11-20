@@ -88,7 +88,7 @@ class Api(object):
 
                 # add required args
                 msg['command'][1]['pubkeys'] = [ unicode(self.pubkey) ]
-                msg['command'][1]['count'] = self.tx_count + 1
+                msg['command'][1]['count'] = self.tx_count
 
                 # hash message, sign and add sig
                 h = self.det_hash(msg['command'][1])
@@ -446,6 +446,10 @@ def add_market(args):
         "states_combinatory": [[0]],
         "type": "prediction_market",
     }
+
+    data = api.send({ 'command': ['info', 'my_address'] })
+    if data:
+        api.tx_count = data['count']
 
     data = api.send({'command': ['pushtx', tx]})
     app.logger.debug(data)
