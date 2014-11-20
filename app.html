@@ -810,6 +810,7 @@ nav .cash {
                 } else if (tx['type'] == 'prediction_market') {
 
                     var decision_id = tx['decisions'][0];
+                    console.log(decision_id);
 
                     // augment market data with decision data
                     augur.markets[decision_id] = _.extend(tx, augur.decisions[decision_id]);

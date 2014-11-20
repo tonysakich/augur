@@ -4,7 +4,7 @@ from __future__ import division
 from gevent import monkey
 monkey.patch_all()
 
-import json, datetime, sys, os, socket, time, re, pprint, ast, hashlib, random, math
+import json, datetime, sys, os, socket, time, re, pprint, ast, hashlib, random
 
 from flask import Flask, session, request, escape, url_for, redirect, render_template, g, abort
 from flask.ext.socketio import SocketIO, emit, send
@@ -225,7 +225,7 @@ class Api(object):
 
         B = market['B'] * 1.0
 
-        def C(s, B): return B * math.log(sum(map(lambda x: math.e ** (x/B), s)))
+        def C(s, B): return B * (sum(map(lambda x: E ** (x / B), s))).ln()
 
         C_old = C(market['shares_purchased'], B)
 
@@ -394,6 +394,7 @@ def miner(arg):
             emit('miner', 'off')
         else:
             emit('miner', 'error')
+        app.logger.debug(data)
 
 
 @socketio.on('send-cash', namespace='/socket.io/')
@@ -484,7 +485,7 @@ def trade(args):
                 tx['buy'].append(0)
 
         cost = api.get_cost_per_share(tx)
-        tx['price_limit'] = int(cost * 1.01)
+        tx['price_limit'] = int(cost * 1.01) + 1
 
         tx = api.trade_pow(tx)
 
