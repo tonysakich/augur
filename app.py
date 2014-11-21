@@ -5,6 +5,7 @@ from gevent import monkey
 monkey.patch_all()
 
 import json, datetime, sys, os, socket, time, re, pprint, ast, hashlib, random
+from decimal import Decimal
 
 from flask import Flask, session, request, escape, url_for, redirect, render_template, g, abort
 from flask.ext.socketio import SocketIO, emit, send
@@ -128,7 +129,7 @@ class Api(object):
             return self.send(msg, retry=retry+1)
         
         elif response == 'no length':
-        
+    
             app.logger.error('no length: ' + str(msg))
         
             return self.send(msg, retry=retry+1)
@@ -195,7 +196,6 @@ class Api(object):
     def get_market(self, id=None):
 
         if id:
-
             market = self.send({'command':['info', id]})
 
             return market
@@ -204,11 +204,8 @@ class Api(object):
     def trade_pow(self, tx):
 
         tx = json.loads(json.dumps(tx))
-
         h = self.det_hash(tx)
-
         tx[u'nonce'] = random.randint(0, 10000000000000000000000000000000000000000)
-
         a = 'F' * 64
 
         while self.det_hash(a) > self.BUY_SHARES_TARGET:
@@ -222,17 +219,15 @@ class Api(object):
     def get_cost_per_share(self, tx):
 
         market = self.get_market(id=tx['PM_id'])
-
-        B = market['B'] * 1.0
+        B = market['B'] * Decimal(1.0)
+        E = Decimal('2.718281828459045')
 
         def C(s, B): return B * (sum(map(lambda x: E ** (x / B), s))).ln()
-
         C_old = C(market['shares_purchased'], B)
 
         def add(a, b): return a + b
-        
         C_new = C(map(add, market['shares_purchased'], tx['buy']), B)
-        
+
         return int(C_new - C_old)
 
 
@@ -254,6 +249,7 @@ def ping():
     data = api.send({ 'command': ['peers'] })
 
     if data:
+
         peers = {}
         for peer in data:
             address = "%s:%s" % (peer[0][0], peer[0][1])
@@ -454,6 +450,14 @@ def add_market(args):
 
     data = api.send({'command': ['pushtx', tx]})
     app.logger.debug(data)
+
+
+@socketio.on('update-market', namespace='/socket.io/')
+def update_market(id):
+
+    data = api.get_market(id)
+    if data:
+        emit('market', data)
 
 
 @socketio.on('trade', namespace='/socket.io/')
