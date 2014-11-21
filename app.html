@@ -128,6 +128,25 @@ nav .cash {
 #create-branch-modal .modal-dialog {
     width: 400px;
 }
+
+#trade-modal .modal-dialog {
+    width: 450px;
+}
+#trade-modal .btn-group {
+    width: 100%;
+}
+#trade-modal p {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 0px;
+}
+#trade-modal #trade-amount {
+    width: 115px;
+}
+#trade-modal button {
+    width: 100px;
+}
+
 #explore-modal .modal-dialog {
     width: 90%;
 }
@@ -362,7 +381,7 @@ nav .cash {
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>Description</th><th>Branch</th><th>Matures</th><th style="text-align: right;">Trade</th>
+                            <th>Description</th><th>Branch</th><th>Matures</th><th style="text-align: right;">Status</th>
                         <tr>
                     </thead>
                     <tbody class="decisions"></tbody>
@@ -381,7 +400,7 @@ nav .cash {
     </footer>
 
     <div id="alert" class="alert alert-dismissible" role="alert">
-        <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <button type="button" class="close" onclick="$('#alert').hide()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
         <div></div>
     </div>
 
@@ -493,9 +512,19 @@ nav .cash {
         <div class="modal-dialog model-sm">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4><span class="trade-type"></span> shares of <span class="market"></span></h4>
+                    <div class="btn-group btn-group-justified" data-toggle="buttons">
+                        <label class="btn btn-primary">
+                            <input type="radio" name="trade-type" autocomplete="off"> Buy
+                        </label>
+                        <label class="btn btn-primary">
+                            <input type="radio" name="trade-type" autocomplete="off"> Sell
+                        </label>
+                    </div>
                 </div>
                 <div class="modal-body">
+                    <p class="decision-text"></p>
+                </div>
+                <div class="modal-footer">
                     <form class="form-inline" role="form">
                         <div class="form-group">
                             <label class="sr-only" for="market-state">State</label>
@@ -505,9 +534,8 @@ nav .cash {
                             <label class="sr-only" for="amount">Amount</label>
                             <input type="text" name="trade-amount" id="trade-amount" class="form-control" placeholder="Amount">
                         </div>
-                        <input type="hidden" name="trade-type" id="trade-type">
                         <input type="hidden" name="trade-market" id="trade-market">
-                        <button type="submit" class="btn btn-primary"><span class="trade-type"></span></button>
+                        <button type="submit" class="btn btn-primary" disabled><span class="trade-type">-</span></button>
                     </form>
                 </div>
             </div>
@@ -669,17 +697,19 @@ nav .cash {
             augur.force = false;
 
             var prev_blockcount = augur.blockcount;
-            var start_block = prev_blockcount + 1;
-
             augur.blockcount = count;
             self.postMessage({'blockcount': count});
+
+            var start_block = prev_blockcount + 1;
 
             socket.emit('update-account');
 
             // examine new blocks
-            console.log('[nodeMonitor] fetching blocks '+ start_block +' - '+augur.blockcount);
-            for (i = start_block; i <= augur.blockcount; i++) {
-                socket.emit('get-block', i);
+            if (prev_blockcount != count) {
+                console.log('[nodeMonitor] fetching blocks '+ start_block +' - '+augur.blockcount);
+                for (i = start_block; i <= augur.blockcount; i++) {
+                    socket.emit('get-block', i);
+                }
             }
 
             // check for maturing decisions
@@ -810,7 +840,6 @@ nav .cash {
                 } else if (tx['type'] == 'prediction_market') {
 
                     var decision_id = tx['decisions'][0];
-                    console.log(decision_id);
 
                     // augment market data with decision data
                     augur.markets[decision_id] = _.extend(tx, augur.decisions[decision_id]);
@@ -842,7 +871,7 @@ nav .cash {
             });
 
             // check to see if we have caught up and loaded all txs
-            if (block['length'] == augur.network_blockcount) {
+            if (block['length'] == augur.network_blockcount && !augur.current) {
                 augur.current = true;
                 augur.force = true;
             }
@@ -936,6 +965,8 @@ nav .cash {
 
 </script>
 
+<!--  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ## -->
+
 <script>
 (function () {
 
@@ -985,6 +1016,8 @@ nav .cash {
  
 
         } else if (m['alert']) {
+
+            $('#alert').show();
 
             $('#alert').removeClass('alert-info').removeClass('alert-success').removeClass('alert-warning').removeClass('alert-danger');
             $('#alert').addClass('alert-'+m.alert['type']);
@@ -1188,32 +1221,21 @@ nav .cash {
                 $('.decisions').empty();
                 _.each(m['markets'], function(m) {
 
-                    console.log(m);
-
                     if (m) {
                         var states = $('<select>').addClass('states, form-control').attr('name', 'market-state');
+                        states.append($('<option>').text('Select'));
                         _.each(m['states'], function(state) {
-                            states.append($('<option>').val(state).text(state));
+                            states.append($('<option>').val(state).text(parseInt(state) ? 'True' : 'False'));
                         });
                         var row = $('<tr>').html('<td>'+m.txt+'</td><td>'+m.vote_id+'</td><td>'+formatDate(m.maturation_date)+'</td>');
-                        var buy = $('<a>').attr('href', '#').text('buy').on('click', function() {
-                            $('#trade-modal .trade-type').text('buy');
-                            $('#trade-modal .market').text(m.PM_id);
+                        var trade = $('<a>').attr('href', '#').text('trade').on('click', function() {
+                            $('#trade-modal .decision-text').text(m.txt);
                             $('#trade-market').val(m.PM_id);
-                            $('#trade-type').val('buy');
-                            $('#trade-modal').modal('show');
-                            $('#market-state').empty().append(states);
-                        });
-                        var sell = $('<a>').attr('href', '#').text('sell').on('click', function() {
-                            $('#trade-modal .trade-type').text('sell');
-                            $('#trade-modal .market').text(m.PM_id);
-                            $('#trade-market').val(m.PM_id);
-                            $('#trade-type').val('sell');
                             $('#trade-modal').modal('show');
                             $('#market-state').empty().append(states);
                         });
                         if (m.status == 'open') {
-                            var trade = $('<td>').append(buy).append(' / ').append(sell).css('text-align', 'right');
+                            var trade = $('<td>').append(trade).css('text-align', 'right');
                         } else if (m.status == 'pending') {
                             var trade = $('<td>').text('pending').css('text-align', 'right');
                         } else {
