@@ -235,7 +235,9 @@ nav .cash {
     margin-top: 10px;
     margin-left: 10px;
 }
-
+.decisions .text {
+    width: 65%;
+}
 .spin {
     display: inline-block;
     -webkit-transform-origin: 47% 50%;
@@ -1245,7 +1247,7 @@ nav .cash {
                             states.append($('<option>').val(state).text(state == 1 ? 'True' : 'False'));
                         });
 
-                        var row = $('<tr>').html('<td>'+m.txt+'</td><td>'+m.vote_id+'</td><td>'+formatDate(m.maturation_date)+'</td>');
+                        var row = $('<tr>').html('<td class="text">'+m.txt+'</td><td>'+m.vote_id+'</td><td>'+formatDate(m.maturation_date)+'</td>');
                         var trade = $('<a>').attr('href', '#').text('trade').on('click', function() {
 
                             // reset state
