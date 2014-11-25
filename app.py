@@ -456,9 +456,9 @@ def add_market(args):
 @socketio.on('update-market', namespace='/socket.io/')
 def update_market(id):
 
-    app.logger.debug(id)
+    #app.logger.debug(id)
     data = api.get_market(id)
-    app.logger.debug(data)
+    #app.logger.debug(data)
     if data:
         emit('market', data)
 

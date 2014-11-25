@@ -145,6 +145,7 @@ nav .cash {
 }
 #trade-modal button {
     width: 100px;
+    text-transform: capitalize;
 }
 
 #explore-modal .modal-dialog {
@@ -699,11 +700,14 @@ nav .cash {
     socket.on('market', function (m) { 
         
         if (m.decisions) {
+
             var decision_id = m['decisions'][0];
             if (augur.markets[decision_id]) {
                 augur.markets[decision_id] = _.extend(augur.markets[decision_id], m);
             }
-            // TODO: add personal shares to the market record
+            if (account.shares && account.shares[decision_id]) {
+                augur.markets[decision_id]['my_shares'] = augur.account.shares[decision_id]
+            }
         }
     });
 
@@ -1067,7 +1071,6 @@ nav .cash {
             $('.nav button').addClass('btn-warning');
             $('.nav button').removeClass('stopped');
             $('.nav button').show();
-            //$('#main').show();   // show the dash while starting up or not?
 
         } else if (m['node-down']) {
 
@@ -1241,18 +1244,21 @@ nav .cash {
                 _.each(m['markets'], function(m) {
 
                     if (m) {
+                        console.log(m);
                         var states = $('<select>').addClass('states, form-control').attr('name', 'market-state');
-                        var balances = $('<ul>').addClass('list-unstyled');
+                        var balances = $('<table>').addClass('table, table-bordered');
+                        balances.append($('<th>').html('<td>State</td><td>Owned</td><td>Total</td>'));
                         states.append($('<option>').text('Select'));
                         _.each(m['states'], function(state) {
-                            balances.append($('<li>').html(state == 1 ? 'True' : 'False'));
-                            states.append($('<option>').val(state).text(state == 1 ? 'True' : 'False'));
+                            var s = state == '1' ? 'True' : 'False';
+                            balances.append($('<tr>').html('<td>'+s+'</td><td></td><td></td>'));
+                            states.append($('<option>').val(state).text(s));
                         });
 
                         var row = $('<tr>').html('<td class="text">'+m.txt+'</td><td>'+m.vote_id+'</td><td>'+formatDate(m.maturation_date)+'</td>');
                         var trade = $('<a>').attr('href', '#').text('trade').on('click', function() {
 
-                            // reset state
+                            // reset trade modal state
                             $('#trade-modal input[name=trade-type]').removeAttr('checked');
                             $('#trade-modal label.btn').removeClass('active');
                             $('#trade-modal button.trade').text('-').attr('disabled', true);
