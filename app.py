@@ -37,7 +37,12 @@ class Api(object):
         self.tx_count = 0
         self.host = 'localhost'
         self.port = 8899
-        self.core_path = '../AugurCore'
+        HERE = os.path.dirname(os.path.realpath(__file__))
+        self.core_path = os.path.join(HERE, os.pardir, "AugurCore")
+        if not os.path.isdir(self.core_path):
+            self.core_path = os.path.join(HERE, os.pardir, "Truthcoin-POW")
+            if not os.path.isdir(self.core_path):
+                app.logger.error("Augur core not found")
 
     @property
     def python_cmd(self):
