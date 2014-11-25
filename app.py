@@ -440,41 +440,30 @@ def add_decision(args):
             args['decisionText']
         ]
     })
-    print({
-        'command': [
-            'ask_decision',
-            args['branchId'],
-            block,
-            args['decisionId'],
-            args['decisionText']
-        ]
-    })
     app.logger.debug(data)
-    # return decision id and args back to client so it can automatically add a market for this decision
-    # emit('add-decision', args)
     add_market(args)
 
 @socketio.on('add-market', namespace='/socket.io/')
 def add_market(args):
-    # ./truth_cli.py create_pm PM_id B decisions states states_combinatory
-    # ./truth_cli.py create_pm pm_id_0 1000 decision_0,decision_1 case_1,case_2,case_3,case_4 0,0.1,0.0,1]
+    """Simplified market creation for single-decision binary markets.
+    
+    Examples:
+      ./truth_cli.py create_pm PM_id B decisions states states_combinatory
+      ./truth_cli.py create_pm pm_id_0 1000 decision_0,decision_1 case_1,case_2,case_3,case_4 0,0.1,0.0,1]
+
+    """
     app.logger.debug(args)
-    cmd = {
+    data = api.send({
         "command": [
             "create_pm", 
             args['decisionId'] + '.market', # B
             int(args["marketInv"]), # PM_id
-            [args["decisionId"]], # decision list
-            ['0', '1'], # states
-            [[0]], # states_combinatory
+            str(args["decisionId"]), # decision list
+            "0,1", # states
+            "0", # states_combinatory
         ]
-    }
-    print(cmd)
-    print(json.dumps(cmd, indent=3, sort_keys=True))
-    data = api.send(cmd)
-    print(json.dumps(data, indent=3, sort_keys=True))
-    # app.logger.debug(data)
-
+    })
+    app.logger.debug(data)
 
 @socketio.on('update-market', namespace='/socket.io/')
 def update_market(id):
