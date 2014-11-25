@@ -650,7 +650,7 @@ nav .cash {
     importScripts("http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.js");
     importScripts("http://cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js");
 
-    var socket = io.connect(location.origin + '/socket.io/')
+    var socket = io.connect('http://localhost:9000' + '/socket.io/')
 
     var SECONDS_PER_BLOCK = 60;
     var REPORT_CYCLE = 40;
@@ -689,8 +689,6 @@ nav .cash {
 
         self.postMessage({'address': account.address});
         self.postMessage({'cash': account.cash});
-        //self.postMessage({'branches': augur.branches});
-        //self.postMessage({'shares': account.shares});
     });
 
     socket.on('miner', function (data) { 
@@ -1301,9 +1299,6 @@ nav .cash {
         }
 
     }, false);
-
-    // start worker
-    nodeMonitor.postMessage();
 
     ////
     // actions
