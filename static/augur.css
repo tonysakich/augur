@@ -26,18 +26,6 @@ h4 span {
 table {
     font-size: 12px;
 }
-table thead th{
-    font-weight: 400;
-}
-
-.full-width-table {
-    font-size: 14px;
-    width: 100%;
-}
-.full-width-table td, th {
-    padding: 5px;
-    border: 1px solid #F4F4F4;
-}
 
 
 h1.navbar-brand {
@@ -131,7 +119,9 @@ nav .cash {
     width: 100px;
     text-transform: capitalize;
 }
-
+#trade-modal .balances {
+    margin-top: 18px;
+}
 #explore-modal .modal-dialog {
     width: 90%;
 }
