@@ -30,6 +30,16 @@ table thead th{
     font-weight: 400;
 }
 
+.full-width-table {
+    font-size: 14px;
+    width: 100%;
+}
+.full-width-table td, th {
+    padding: 5px;
+    border: 1px solid #F4F4F4;
+}
+
+
 h1.navbar-brand {
     font-size: 26px;
     font-weight: 200;
@@ -161,6 +171,8 @@ nav .cash {
     font-size: 12px;
     margin-bottom: 10px;
 }
+
+.report-decisions
 
 .cycle {
     margin-bottom: 30px;

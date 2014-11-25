@@ -8,20 +8,23 @@
 
 ### Installation
 
-#### Mac OS
-- install [Xcode command line tools](https://developer.apple.com/downloads/)
-- $ git clone git@github.com:scottzer0/Augur-UI.git
-- $ cd Augur-UI
-- $ sudo pip install -r requirements.txt
-- $ python app.py
-- [http://localhost:9000](http://localhost:9000)
+#### Mac OSX
+First, install [Xcode command line tools](https://developer.apple.com/downloads/).  Then enter the following commands in the terminal:
+
+    $ git clone git@github.com:scottzer0/Augur-UI.git
+    $ cd Augur-UI
+    $ sudo pip install -r requirements.txt
+    $ python app.py
+    
+Go to [http://localhost:9000](http://localhost:9000) in your browser.
 
 #### Linux
-- $ git clone git@github.com:scottzer0/Augur-UI.git
-- $ cd Augur-UI
-- $ pip install -r requirements.txt
-- $ python app.py
-- [http://localhost:9000](http://localhost:9000)
+    $ git clone git@github.com:scottzer0/Augur-UI.git
+    $ cd Augur-UI
+    $ pip install -r requirements.txt
+    $ python app.py
+
+Go to [http://localhost:9000](http://localhost:9000) in your browser.
 
 #### Windows
 Windows installation is a quite bit more involved than any *nix platform:
