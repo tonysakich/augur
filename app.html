@@ -966,12 +966,12 @@
                 _.each(m['markets'], function(m) {
 
                     if (m) {
-                        console.log(m);
+                        // console.log(m);
                         var states = $('<select>').addClass('states, form-control').attr('name', 'market-state');
                         var balances = $('<table>').addClass('table, table-bordered');
                         balances.append($('<th>').html('<td>State</td><td>Owned</td><td>Total</td>'));
                         states.append($('<option>').text('Select'));
-                        _.each(m['states'], function(state) {
+                        _.each(m['states'], function(state) {                           
                             var s = state == '1' || state.toLowerCase() == 'yes' ? 'True' : 'False';
                             balances.append($('<tr>').html('<td>'+s+'</td><td></td><td></td>'));
                             states.append($('<option>').val(state).text(s));

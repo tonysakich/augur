@@ -5,6 +5,7 @@ from gevent import monkey
 monkey.patch_all()
 
 import json, datetime, sys, os, socket, time, re, pprint, ast, hashlib, random
+from string import ascii_uppercase, ascii_lowercase, digits
 from decimal import Decimal
 
 from flask import Flask, session, request, escape, url_for, redirect, render_template, g, abort, send_from_directory
@@ -428,7 +429,8 @@ def add_decision(args):
 
     block = args['decisionMaturation']
 
-    args['decisionId'] = hashlib.sha1(args['decisionText']).hexdigest()[:16]
+    randstring = ''.join(random.choice(ascii_uppercase+ascii_lowercase+digits) for _ in range(8))
+    args['decisionId'] = hashlib.sha1(args['decisionText'] + randstring).hexdigest()[:16]
 
     data = api.send({ 'command':['ask_decision', args['branchId'], block, args['decisionId'], args['decisionText']] })
     app.logger.debug(data)
