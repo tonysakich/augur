@@ -7,7 +7,7 @@ monkey.patch_all()
 import json, datetime, sys, os, socket, time, re, pprint, ast, hashlib, random
 from decimal import Decimal
 
-from flask import Flask, session, request, escape, url_for, redirect, render_template, g, abort
+from flask import Flask, session, request, escape, url_for, redirect, render_template, g, abort, send_from_directory
 from flask.ext.socketio import SocketIO, emit, send
 
 from multiprocessing import Process
@@ -239,8 +239,12 @@ api = Api()
 
 @app.route('/', methods=['GET', 'POST'])
 def dash():
-
     return render_template('app.html')
+
+@app.route('/static/<path:filename>')
+@app.route('/fonts/<path:filename>')
+def fonts(filename):
+    return send_from_directory('static', filename)
 
 
 @socketio.on('ping', namespace='/socket.io/')
@@ -440,7 +444,7 @@ def add_market(args):
         "decisions": [args['decisionId']],
         "fees": 0,
         "owner": api.address,
-        "states": ['no', 'yes'],
+        "states": [0, 1],
         "states_combinatory": [[0]],
         "type": "prediction_market",
     }
