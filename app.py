@@ -444,7 +444,7 @@ def add_market(args):
         "decisions": [args['decisionId']],
         "fees": 0,
         "owner": api.address,
-        "states": [0, 1],
+        "states": ['0', '1'],
         "states_combinatory": [[0]],
         "type": "prediction_market",
     }

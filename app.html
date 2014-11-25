@@ -236,7 +236,7 @@ nav .cash {
     margin-left: 10px;
 }
 .decisions .text {
-    width: 65%;
+    width: 62%;
 }
 .spin {
     display: inline-block;
@@ -1032,10 +1032,7 @@ nav .cash {
     
         var m = e.data;
 
-        if (m['load']) {
- 
-
-        } else if (m['alert']) {
+        if (m['alert']) {
 
             $('#alert').show();
 
@@ -1243,10 +1240,11 @@ nav .cash {
                     if (m) {
                         console.log(m);
                         var states = $('<select>').addClass('states, form-control').attr('name', 'market-state');
-                        var balances = $('<table>').addClass('table, table-bordered');
-                        balances.append($('<th>').html('<td>State</td><td>Owned</td><td>Total</td>'));
+                        var balances = $('<table>').addClass('table');
+                        balances.append($('<tr>').html('<th>State</th><th>Owned</th><th>Total</th>'));
                         states.append($('<option>').text('Select'));
                         _.each(m['states'], function(state) {
+                            console.log(state);
                             var s = state == '1' || state.toLowerCase() == 'yes' ? 'True' : 'False';
                             balances.append($('<tr>').html('<td>'+s+'</td><td></td><td></td>'));
                             states.append($('<option>').val(state).text(s));
