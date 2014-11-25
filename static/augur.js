@@ -266,13 +266,14 @@
         } else if (m['trade']) {
 
             var m = m['trade'];
+            m['my_shares'] = m.my_shares ? m.my_shares : [0,0];
             var states = $('<select>').addClass('states, form-control').attr('name', 'market-state');
             var balances = $('<table>').addClass('table');
             balances.append($('<tr>').html('<th>State</th><th>Owned</th><th>Total</th>'));
             states.append($('<option>').text('Select'));
-            _.each(m['states'], function(state) {
+            _.each(m['states'], function(state, i) {
                 var s = state == '1' || String(state).toLowerCase() == 'yes' ? 'True' : 'False';
-                balances.append($('<tr>').html('<td>'+s+'</td><td></td><td></td>'));
+                balances.append($('<tr>').html('<td>'+s+'</td><td>'+m['my_shares'][i]+'</td><td>'+m['shares_purchased'][i]+'</td>'));
                 states.append($('<option>').val(state).text(s));
             });
 
