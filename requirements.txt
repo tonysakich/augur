@@ -1,2 +1,5 @@
 Flask==0.10.1
 Flask-SocketIO==0.4.1
+numpy
+m3-cdecimal
+six
