@@ -37,7 +37,7 @@ class Api(object):
         self.tx_count = 0
         self.host = 'localhost'
         self.port = 8899
-        self.core_path = '../Truthcoin-POW'
+        self.core_path = '../AugurCore'
 
     @property
     def python_cmd(self):
