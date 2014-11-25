@@ -421,11 +421,12 @@ def add_decision(args):
 
     args['decisionId'] = hashlib.sha1(args['decisionText']).hexdigest()[:16]
 
-    # return decision id and args back to client so it can automatically add a market for this decision
-    emit('add-decision', args)
-
     data = api.send({ 'command':['ask_decision', args['branchId'], block, args['decisionId'], args['decisionText']] })
     app.logger.debug(data)
+
+    # return decision id and args back to client so it can automatically add a market for this decision
+    emit('add-decision', args)
+    #add_market(args)
 
 
 @socketio.on('add-market', namespace='/socket.io/')
@@ -455,7 +456,9 @@ def add_market(args):
 @socketio.on('update-market', namespace='/socket.io/')
 def update_market(id):
 
+    app.logger.debug(id)
     data = api.get_market(id)
+    app.logger.debug(data)
     if data:
         emit('market', data)
 

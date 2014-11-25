@@ -698,11 +698,13 @@ nav .cash {
 
     socket.on('market', function (m) { 
         
-        var decision_id = m['decisions'][0];
-        if (augur.markets[decision_id]) {
-            augur.markets[decision_id] = _.extend(augur.markets[decision_id], m);
+        if (m.decisions) {
+            var decision_id = m['decisions'][0];
+            if (augur.markets[decision_id]) {
+                augur.markets[decision_id] = _.extend(augur.markets[decision_id], m);
+            }
+            // TODO: add personal shares to the market record
         }
-        // TODO: add personal shares to the market record
     });
 
     socket.on('blockcount', function (count) {
