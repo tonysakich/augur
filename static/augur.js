@@ -265,25 +265,27 @@
 
         } else if (m['trade']) {
 
-                        var balances = $('<table>').addClass('table');
-                        balances.append($('<tr>').html('<th>State</th><th>Owned</th><th>Total</th>'));
-                        states.append($('<option>').text('Select'));
-                        _.each(m['states'], function(state) {
-                            var s = state == '1' || String(state).toLowerCase() == 'yes' ? 'True' : 'False';
-                            balances.append($('<tr>').html('<td>'+s+'</td><td></td><td></td>'));
-                            states.append($('<option>').val(state).text(s));
-                        });
+            var m = m['trade'];
+            var states = $('<select>').addClass('states, form-control').attr('name', 'market-state');
+            var balances = $('<table>').addClass('table');
+            balances.append($('<tr>').html('<th>State</th><th>Owned</th><th>Total</th>'));
+            states.append($('<option>').text('Select'));
+            _.each(m['states'], function(state) {
+                var s = state == '1' || String(state).toLowerCase() == 'yes' ? 'True' : 'False';
+                balances.append($('<tr>').html('<td>'+s+'</td><td></td><td></td>'));
+                states.append($('<option>').val(state).text(s));
+            });
 
-                        // reset trade modal state
-                        $('#trade-modal input[name=trade-type]').removeAttr('checked');
-                        $('#trade-modal label.btn').removeClass('active');
-                        $('#trade-modal button.trade').text('-').attr('disabled', true);
+            // reset trade modal state
+            $('#trade-modal input[name=trade-type]').removeAttr('checked');
+            $('#trade-modal label.btn').removeClass('active');
+            $('#trade-modal button.trade').text('-').attr('disabled', true);
 
-                        $('#trade-modal .decision-text').text(m.txt);
-                        $('#trade-modal .balances').empty().append(balances);
-                        $('#trade-market').val(m.PM_id);
-                        $('#trade-modal').modal('show');
-                        $('#market-state').empty().append(states);
+            $('#trade-modal .decision-text').text(m.txt);
+            $('#trade-modal .balances').empty().append(balances);
+            $('#trade-market').val(m.PM_id);
+            $('#trade-modal').modal('show');
+            $('#market-state').empty().append(states);
 
         } else if (m['miner']) {
 
