@@ -11,17 +11,27 @@
 #### Mac OSX
 First, install [Xcode command line tools](https://developer.apple.com/downloads/).  Then enter the following commands in the terminal:
 
-    $ git clone git@github.com:scottzer0/Augur-UI.git
+    $ sudo pip install numpy
+    $ sudo pip install m3-cdecimal
+
+    $ git clone git@github.com:AugurProject/Augur-UI.git
     $ cd Augur-UI
     $ sudo pip install -r requirements.txt
     $ python app.py
     
 Go to [http://localhost:9000](http://localhost:9000) in your browser.
 
-#### Linux
-    $ git clone git@github.com:scottzer0/Augur-UI.git
+#### Linux (Ubuntu)
+
+    $ apt-get install python-numpy git
+    $ apt-get install libpython-dev
+    $ pip2 install m3-cdecimal 
+    $ pip install six
+
+    $ git clone git@github.com:AugurProject/Augur-UI.git
     $ cd Augur-UI
     $ pip install -r requirements.txt
+
     $ python app.py
 
 Go to [http://localhost:9000](http://localhost:9000) in your browser.
