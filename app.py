@@ -426,42 +426,54 @@ def create_branch(name):
 
 @socketio.on('add-decision', namespace='/socket.io/')
 def add_decision(args):
-
     block = args['decisionMaturation']
-
-    randstring = ''.join(random.choice(ascii_uppercase+ascii_lowercase+digits) for _ in range(8))
+    randstring = ''.join(
+        random.choice(ascii_uppercase+ascii_lowercase+digits) for _ in range(8)
+    )
     args['decisionId'] = hashlib.sha1(args['decisionText'] + randstring).hexdigest()[:16]
-
-    data = api.send({ 'command':['ask_decision', args['branchId'], block, args['decisionId'], args['decisionText']] })
+    data = api.send({
+        'command': [
+            'ask_decision',
+            args['branchId'],
+            block,
+            args['decisionId'],
+            args['decisionText']
+        ]
+    })
+    print({
+        'command': [
+            'ask_decision',
+            args['branchId'],
+            block,
+            args['decisionId'],
+            args['decisionText']
+        ]
+    })
     app.logger.debug(data)
-
     # return decision id and args back to client so it can automatically add a market for this decision
-    emit('add-decision', args)
-    #add_market(args)
-
+    # emit('add-decision', args)
+    add_market(args)
 
 @socketio.on('add-market', namespace='/socket.io/')
 def add_market(args):
-
+    # ./truth_cli.py create_pm PM_id B decisions states states_combinatory
+    # ./truth_cli.py create_pm pm_id_0 1000 decision_0,decision_1 case_1,case_2,case_3,case_4 0,0.1,0.0,1]
     app.logger.debug(args)
-
-    tx = {
-        "B": int(args['marketInv']),
-        "PM_id": args['decisionId'] + '.market',
-        "decisions": [args['decisionId']],
-        "fees": 0,
-        "owner": api.address,
-        "states": ['0', '1'],
-        "states_combinatory": [[0]],
-        "type": "prediction_market",
+    cmd = {
+        "command": [
+            "create_pm", 
+            args['decisionId'] + '.market', # B
+            int(args["marketInv"]), # PM_id
+            [args["decisionId"]], # decision list
+            ['0', '1'], # states
+            [[0]], # states_combinatory
+        ]
     }
-
-    data = api.send({ 'command': ['info', 'my_address'] })
-    if data:
-        api.tx_count = data['count']
-
-    data = api.send({'command': ['pushtx', tx]})
-    app.logger.debug(data)
+    print(cmd)
+    print(json.dumps(cmd, indent=3, sort_keys=True))
+    data = api.send(cmd)
+    print(json.dumps(data, indent=3, sort_keys=True))
+    # app.logger.debug(data)
 
 
 @socketio.on('update-market', namespace='/socket.io/')
@@ -476,24 +488,19 @@ def update_market(id):
 
 @socketio.on('trade', namespace='/socket.io/')
 def trade(args):
-
     market = api.get_market(id=args['marketId'])
-
     if market:
-
         tx = {
             'type': 'buy_shares',
             'PM_id': args['marketId'],
             'buy': [],
             'pubkeys': [ unicode(api.pubkey) ],
-            'count': api.tx_count
+            'count': api.tx_count,
         }
-
         if args['tradeType'] == 'sell':
             amount = int(args['tradeAmount']) * -1
         else:
             amount = int(args['tradeAmount'])
-
         # find state index
         for i, s in enumerate(market['states']):
             app.logger.info("%s %s" % (s, args['marketState']))
@@ -501,19 +508,17 @@ def trade(args):
                 tx['buy'].append(amount)
             else:
                 tx['buy'].append(0)
-
         cost = api.get_cost_per_share(tx)
         tx['price_limit'] = int(cost * 1.01) + 1
-
         tx = api.trade_pow(tx)
-
     data = api.send({'command': ['pushtx', tx]})
+    print("pushtx: add_market")
+    print(json.dumps(tx, indent=3, sort_keys=True))
     app.logger.debug(data)
 
 
 ###
 # main
-
 if __name__ == '__main__':
 
     socketio.run(app, host='127.0.0.1', port=9000)
