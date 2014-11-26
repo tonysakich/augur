@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 from __future__ import division
+import sys
+try:
+    import cdecimal
+    sys.modules["decimal"] = cdecimal
+except:
+    pass
 
 from gevent import monkey
 monkey.patch_all()

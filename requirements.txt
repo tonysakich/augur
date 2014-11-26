@@ -3,3 +3,4 @@ Flask-SocketIO==0.4.1
 numpy
 m3-cdecimal
 six
+leveldb
