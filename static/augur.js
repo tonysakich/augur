@@ -356,8 +356,16 @@
         };
         
         socket.emit('settings', settings);
+
+        $('#node-settings-modal form button').text('Saved').attr('disabled', true);
+
         //$('#node-settings-modal').modal('hide');
     });
+
+    $('#node-settings-modal form').on('change', function(event) {
+        $('#node-settings-modal form button').text('SAVE SETTINGS').removeAttr('disabled');
+    });
+
 
     $('.miner-control a').on('click', function() {
 
