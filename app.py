@@ -23,6 +23,9 @@ from werkzeug import secure_filename
 # for signing 
 import hashlib, base64
 
+# for automatic AugurCore installation
+import git
+
 from subprocess import call, Popen
 
 # get elliptical signing function so we can create our own tx
@@ -49,7 +52,19 @@ class Api(object):
         if not os.path.isdir(self.core_path):
             self.core_path = os.path.join(HERE, os.pardir, "Truthcoin-POW")
             if not os.path.isdir(self.core_path):
-                app.logger.error("Augur core not found")
+                self.core_path = os.path.join(HERE, os.pardir, "AugurCore")
+                core_git_url = "https://github.com/AugurProject/AugurCore.git"
+                app.logger.debug("AugurCore not found; cloning " +\
+                                 core_git_url + " to " + self.core_path)
+                os.mkdir(self.core_path)
+                repo = git.Repo.init(self.core_path)
+                origin = repo.create_remote("origin", core_git_url)
+                origin.fetch()
+                origin.pull(origin.refs[0].remote_head)
+        if os.path.isdir(self.core_path):
+            app.logger.debug("AugurCore: " + self.core_path)
+        else:
+            app.logger.error("AugurCore not installed successfully.")
 
     @property
     def python_cmd(self):

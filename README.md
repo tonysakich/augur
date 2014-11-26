@@ -3,7 +3,6 @@
 ### Requirements
 
 - Python 2.7
-- [AugurCore](https://github.com/AugurProject/AugurCore)
 - git & pip
 
 ### Installation
