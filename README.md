@@ -7,13 +7,13 @@
 
 ### Installation
 
-#### Mac OSX
+#### MacOS X
 First, install [Xcode command line tools](https://developer.apple.com/downloads/).  Then enter the following commands in the terminal:
 
     $ git clone git@github.com:AugurProject/Augur-UI.git
     $ cd Augur-UI
     $ sudo pip install -r requirements.txt
-    $ python app.py
+    $ ./augur_ctl start
     
 Go to [http://localhost:9000](http://localhost:9000) in your browser.
 
@@ -28,7 +28,7 @@ Go to [http://localhost:9000](http://localhost:9000) in your browser.
     $ cd Augur-UI
     $ pip install -r requirements.txt
 
-    $ python app.py
+    $ ./augur_ctl start
 
 Go to [http://localhost:9000](http://localhost:9000) in your browser.
 
