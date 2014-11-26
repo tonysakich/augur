@@ -138,10 +138,11 @@
 
                     if (d['state'] == '0') { d['state_desc'] = 'False' }
                     else if (d['state'] == '1') { d['state_desc'] = 'True' }
-                    else if (d['state'] == '0.6') { d['state_desc'] = 'Ambiguous or Indeterminent' }
+                    else if (d['state'] == '0.5') { d['state_desc'] = 'Ambiguous or Indeterminent' }
                     else { d['state_desc'] = 'Absent' }
 
                     $('#report-decisions').append(template({'d': d}));
+                    $('#report input[name='+d.decision_id+']').attr('data-state', d.state);
                 });
 
                 $('#report').show();
@@ -172,6 +173,8 @@
 
                         nodeMonitor.postMessage({'report-decision': report});
                         $('#report input[name='+report.decision_id+']').attr('data-state', report.state);
+                        $('#'+report.decision_id).addClass('reported');
+
                     }
                 });
 
@@ -266,13 +269,14 @@
         } else if (m['trade']) {
 
             var m = m['trade'];
+            m['my_shares'] = m.my_shares ? m.my_shares : [0,0];
             var states = $('<select>').addClass('states, form-control').attr('name', 'market-state');
             var balances = $('<table>').addClass('table');
             balances.append($('<tr>').html('<th>State</th><th>Owned</th><th>Total</th>'));
             states.append($('<option>').text('Select'));
-            _.each(m['states'], function(state) {
+            _.each(m['states'], function(state, i) {
                 var s = state == '1' || String(state).toLowerCase() == 'yes' ? 'True' : 'False';
-                balances.append($('<tr>').html('<td>'+s+'</td><td></td><td></td>'));
+                balances.append($('<tr>').html('<td>'+s+'</td><td>'+m['my_shares'][i]+'</td><td>'+m['shares_purchased'][i]+'</td>'));
                 states.append($('<option>').val(state).text(s));
             });
 

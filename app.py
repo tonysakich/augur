@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 from __future__ import division
+import sys
+try:
+    import cdecimal
+    sys.modules["decimal"] = cdecimal
+except:
+    pass
 
 from gevent import monkey
 monkey.patch_all()
@@ -324,8 +330,16 @@ def get_account():
             'pubkey': api.pubkey,
             'cash': data['amount'],
             'shares': data['shares'],
-            'branches': data['votecoin']
+            'branches': data['votecoin'],
+            'decisions': data.get('votes', {})
         }
+
+        # update votes if there are any
+        data = api.send({ 'command': ['info', 'memoized_votes'] })
+        if data:
+            for d, v in account['decisions'].items():
+                if data.get(v):
+                    account['decisions'][d] = data[v][0]
 
         emit('account', account)
 
