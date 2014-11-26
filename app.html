@@ -85,7 +85,7 @@
                     <div id="report" style="display: none;">
                         <ul class="list-group" id="report-decisions"></ul>
                         <script type="text/template" id="report-template">
-                            <li class="list-group-item">
+                            <li class="list-group-item clearfix<% if (d.state) { %> reported<% }; %>" id="<%= d.decision_id %>">
                                 <p><%= d.txt %></p>
                                 <label class="radio-inline">
                                     <input type="radio" name="<%= d.decision_id %>" value="1" <% if (d.state == '1') { %>checked<% }; %>> True
@@ -97,6 +97,7 @@
                                     <input type="radio" name="<%= d.decision_id %>" value="0.5" <% if (d.state == '0.5') { %>checked<% }; %>> Ambiguous or Indeterminent
                                 </label>
                                 <p class="my-choice"><%= d.state_desc %></p>
+                                <span class="pull-right glyphicon glyphicon-ok"></span>
                             </li>
                         </script>
                         <p id="error" class="hidden pull-right"></p>

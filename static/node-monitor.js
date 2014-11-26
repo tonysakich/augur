@@ -204,6 +204,9 @@ socket.on('block', function (block) {
 
                 tx['status'] = tx['maturation'] > augur.network_blockcount ? 'open' : 'closed';
                 tx['maturation_date'] = blockTime(tx['maturation']);
+                if (account.decisions && account.decisions[tx['decision_id']]) {
+                    tx['state'] = account.decisions[tx['decision_id']]
+                }
                 augur.decisions[tx['decision_id']] = tx;
 
                 // check to see if we're waiting for this decision to show up

@@ -138,10 +138,11 @@
 
                     if (d['state'] == '0') { d['state_desc'] = 'False' }
                     else if (d['state'] == '1') { d['state_desc'] = 'True' }
-                    else if (d['state'] == '0.6') { d['state_desc'] = 'Ambiguous or Indeterminent' }
+                    else if (d['state'] == '0.5') { d['state_desc'] = 'Ambiguous or Indeterminent' }
                     else { d['state_desc'] = 'Absent' }
 
                     $('#report-decisions').append(template({'d': d}));
+                    $('#report input[name='+d.decision_id+']').attr('data-state', d.state);
                 });
 
                 $('#report').show();
@@ -172,6 +173,8 @@
 
                         nodeMonitor.postMessage({'report-decision': report});
                         $('#report input[name='+report.decision_id+']').attr('data-state', report.state);
+                        $('#'+report.decision_id).addClass('reported');
+
                     }
                 });
 

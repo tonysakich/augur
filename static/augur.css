@@ -269,3 +269,9 @@ nav .cash {
     font-size: 16px;
     margin: 0px;
 }
+#report li span.glyphicon {
+    display: none;
+}
+#report li.reported span.glyphicon {
+    display: inline;
+}

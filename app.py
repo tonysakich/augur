@@ -309,8 +309,16 @@ def get_account():
             'pubkey': api.pubkey,
             'cash': data['amount'],
             'shares': data['shares'],
-            'branches': data['votecoin']
+            'branches': data['votecoin'],
+            'decisions': data.get('votes', {})
         }
+
+        # update votes if there are any
+        data = api.send({ 'command': ['info', 'memoized_votes'] })
+        if data:
+            for d, v in account['decisions'].items():
+                if data.get(v):
+                    account['decisions'][d] = data[v][0]
 
         emit('account', account)
 
