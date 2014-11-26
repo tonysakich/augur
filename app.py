@@ -485,8 +485,8 @@ def add_market(args):
     data = api.send({
         "command": [
             "create_pm", 
-            args['decisionId'] + '.market', # B
-            int(args["marketInv"]), # PM_id
+            args['decisionId'] + '.market', # PM_id
+            int(args["marketInv"]), # B
             str(args["decisionId"]), # decision list
             "0,1", # states
             "0", # states_combinatory
@@ -506,33 +506,42 @@ def update_market(id):
 
 @socketio.on('trade', namespace='/socket.io/')
 def trade(args):
-    market = api.get_market(id=args['marketId'])
-    if market:
-        tx = {
-            'type': 'buy_shares',
-            'PM_id': args['marketId'],
-            'buy': [],
-            'pubkeys': [ unicode(api.pubkey) ],
-            'count': api.tx_count,
-        }
-        if args['tradeType'] == 'sell':
-            amount = int(args['tradeAmount']) * -1
+    """Buy or Sell shares of a prediction.
+
+    For example, this would sell 200 of the first
+    state in PM_id, and buy 1000 of the second:
+    
+      ./truth_cli.py trade_shares PM_id -200,1000
+
+    Args:
+      {
+        "marketId": "1f56c5596200f0f9.market", 
+        "marketState": "0", 
+        "tradeAmount": "100", 
+        "tradeType": "buy"
+      }
+
+    """
+    trade = None
+    app.logger.debug(args)
+    market_info = api.get_market(args["marketId"])
+    trade = []
+    for i, state in enumerate(market_info["states"]):
+        if args["marketState"] == state:
+            trade.append(args["tradeAmount"])
         else:
-            amount = int(args['tradeAmount'])
-        # find state index
-        for i, s in enumerate(market['states']):
-            app.logger.info("%s %s" % (s, args['marketState']))
-            if s == args['marketState']:
-                tx['buy'].append(amount)
-            else:
-                tx['buy'].append(0)
-        cost = api.get_cost_per_share(tx)
-        tx['price_limit'] = int(cost * 1.01) + 1
-        tx = api.trade_pow(tx)
-    data = api.send({'command': ['pushtx', tx]})
-    print("pushtx: add_market")
-    print(json.dumps(tx, indent=3, sort_keys=True))
-    app.logger.debug(data)
+            trade.append("0")
+    if trade:
+        data = api.send({
+            "command": [
+                "trade_shares",
+                args["marketId"],
+                ",".join(trade),
+            ]
+        })
+        app.logger.debug(data)
+    else:
+        app.logger.error("Unknown market state: " + args["marketState"])
 
 
 ###
