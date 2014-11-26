@@ -32,18 +32,20 @@ class Api(object):
 
     MAX_MESSAGE_SIZE = 60000
     BUY_SHARES_TARGET = '0' * 3 + '1' + '9' * 60
+    HERE = os.path.dirname(os.path.realpath(__file__))
 
     def __init__(self):
 
         self.tx_count = 0
         self.host = 'localhost'
         self.port = 8899
-        HERE = os.path.dirname(os.path.realpath(__file__))
-        self.core_path = os.path.join(HERE, os.pardir, "AugurCore")
+        self.core_path = os.path.join(os.pardir, "AugurCore")
+
         if not os.path.isdir(self.core_path):
-            self.core_path = os.path.join(HERE, os.pardir, "Truthcoin-POW")
+            self.core_path = os.path.join(os.pardir, "Truthcoin-POW")
             if not os.path.isdir(self.core_path):
                 app.logger.error("Augur core not found")
+                self.core_path = None
 
     @property
     def python_cmd(self):
@@ -287,6 +289,22 @@ def ping():
             emit('miner', 'off')
         else:
             emit('miner', 'error')
+
+
+@socketio.on('settings', namespace='/socket.io/')
+def settings(settings):
+
+    if settings:
+
+        if not os.path.isdir(settings['core_path']):
+            app.logger.error("Augur core not found")
+            settings['core_path'] = None 
+
+        api.host = settings['host']
+        api.port = settings['port']
+        api.core_path = settings['core_path']
+
+    emit('settings', {'host': api.host, 'port': api.port, 'core_path': api.core_path})
 
 
 @socketio.on('get-account', namespace='/socket.io/')

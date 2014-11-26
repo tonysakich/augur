@@ -96,6 +96,14 @@ nav .cash {
     top: 0px;
     right: -16px;
 }
+#node-settings-modal .modal-header h4 {
+    font-size: 14px;
+    display: none;
+    color: #555;
+}
+#node-settings-modal.unknown .modal-header h4 {
+    display: block;
+}
 
 #create-branch-modal .modal-dialog {
     width: 400px;

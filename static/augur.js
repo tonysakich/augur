@@ -28,6 +28,9 @@
         $('#confirm-modal').modal('show');
     }
 
+    // get settings
+    socket.emit('settings', null);
+
     var nodeMonitor = new Worker('/static/node-monitor.js');
 
     // worker error handling
@@ -35,6 +38,7 @@
         console.log('[nodeMonitor] error on '+ e.lineno,': ' +e.message);
     }, false);
 
+    ////
     // main worker postMessage listener
     nodeMonitor.addEventListener('message', function(e) {
     
@@ -311,8 +315,49 @@
 
     }, false);
 
+
+    ////
+    // sockets
+
+    socket.on('add-decision', function(data) {
+        nodeMonitor.postMessage({'add-decision': data});
+    });
+
+    socket.on('show-block', function(data) {
+        $('#explore-modal pre').text(data);
+    });
+
+    socket.on('settings', function(settings) {
+
+        if (!settings.core_path) {
+            settings.core_path = '';
+            $('#node-settings-modal').addClass('unknown');
+            $('#start-node').attr('disabled', true);
+        } else {
+            $('#node-settings-modal').removeClass('unknown');
+            $('#start-node').removeAttr('disabled');
+        }
+
+        $('#node-host').val(settings.host);
+        $('#node-port').val(settings.port);
+        $('#core-path').val(settings.core_path);
+    });
+
     ////
     // actions
+
+    $('#node-settings-modal form').on('submit', function(event) {
+
+        event.preventDefault();
+        var settings = {
+            'host': $('#node-host').val(),
+            'port': $('#node-port').val(),
+            'core_path': $('#core-path').val()
+        };
+        
+        socket.emit('settings', settings);
+        //$('#node-settings-modal').modal('hide');
+    });
 
     $('.miner-control a').on('click', function() {
 
@@ -325,16 +370,6 @@
             socket.emit('miner', 'stop');
         }
     });
-
-    $('#password-form').on('submit', function(event) {
-
-        event.preventDefault();
-        socket.emit('start', $('#password').val());
-        $(this).hide();
-        $('#start-node').button('loading');
-        $('#start-node').show();
-        $('#password-modal').modal('hide');
-    }); 
 
 
     $('.reporting form').on('submit', function(event) {
@@ -371,10 +406,6 @@
 
         socket.emit('add-decision', args);
         $('#add-decision-modal').modal('hide');
-    });
-
-    socket.on('add-decision', function(data) {
-        nodeMonitor.postMessage({'add-decision': data});
     });
 
     $('#send-cash-modal form').on('submit', function(event) {
@@ -417,10 +448,6 @@
 
         event.preventDefault();
         socket.emit('explore-block', $('#explore-modal input[name=block-number]').val());
-    });
-
-    socket.on('show-block', function(data) {
-        $('#explore-modal pre').text(data);
     });
 
     $('#stop-node').on('click', function() {
