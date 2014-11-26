@@ -1,4 +1,4 @@
-## Augur-UI
+## Augur
 
 ### Requirements
 
@@ -9,9 +9,6 @@
 
 #### Mac OSX
 First, install [Xcode command line tools](https://developer.apple.com/downloads/).  Then enter the following commands in the terminal:
-
-    $ sudo pip install numpy
-    $ sudo pip install m3-cdecimal
 
     $ git clone git@github.com:AugurProject/Augur-UI.git
     $ cd Augur-UI

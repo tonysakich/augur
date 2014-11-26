@@ -41,30 +41,37 @@ class Api(object):
 
     MAX_MESSAGE_SIZE = 60000
     BUY_SHARES_TARGET = '0' * 3 + '1' + '9' * 60
+    HERE = os.path.dirname(os.path.realpath(__file__))
+    CORE_PATH = os.path.join(HERE, os.pardir, "core")
 
     def __init__(self):
 
         self.tx_count = 0
         self.host = 'localhost'
         self.port = 8899
-        HERE = os.path.dirname(os.path.realpath(__file__))
-        self.core_path = os.path.join(HERE, os.pardir, "AugurCore")
+        self.core_path = self.CORE_PATH
+        self.core_repo_url = "https://github.com/AugurProject/AugurCore.git"
+        
+        # look for core
         if not os.path.isdir(self.core_path):
-            self.core_path = os.path.join(HERE, os.pardir, "Truthcoin-POW")
+
+            # check for zack's core 
+            self.core_path = os.path.join(self.HERE, os.pardir, os.pardir, "Truthcoin-POW")
             if not os.path.isdir(self.core_path):
-                self.core_path = os.path.join(HERE, os.pardir, "AugurCore")
-                core_git_url = "https://github.com/AugurProject/AugurCore.git"
-                app.logger.debug("AugurCore not found; cloning " +\
-                                 core_git_url + " to " + self.core_path)
+
+                self.core_path = self.CORE_PATH
+                app.logger.info("AugurCore not found; cloning " +\
+                                 self.core_repo_url + " to " + self.core_path)
                 os.mkdir(self.core_path)
                 repo = git.Repo.init(self.core_path)
-                origin = repo.create_remote("origin", core_git_url)
+                origin = repo.create_remote("origin", self.core_repo_url)
                 origin.fetch()
                 origin.pull(origin.refs[0].remote_head)
+
         if os.path.isdir(self.core_path):
-            app.logger.debug("AugurCore: " + self.core_path)
+            app.logger.info("Found AugurCore at " + self.core_path)
         else:
-            app.logger.error("AugurCore not installed successfully.")
+            app.logger.error("Failed to install or find AugurCore. You can manually set the path in node options.")
 
     @property
     def python_cmd(self):
@@ -272,6 +279,23 @@ def dash():
 @app.route('/fonts/<path:filename>')
 def fonts(filename):
     return send_from_directory('static', filename)
+
+
+@socketio.on('settings', namespace='/socket.io/')
+def settings(settings):
+
+    if settings:
+        api.host = settings['host']
+        api.port = settings['port']
+        api.core_path = settings['core_path']
+    else:
+        settings = {
+            'host': api.host,
+            'port': api.port,
+            'core_path': api.core_path
+        }
+
+    emit('settings', settings)
 
 
 @socketio.on('ping', namespace='/socket.io/')

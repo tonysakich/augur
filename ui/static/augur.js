@@ -28,6 +28,9 @@
         $('#confirm-modal').modal('show');
     }
 
+    // get settings
+    socket.emit('settings', null);
+
     var nodeMonitor = new Worker('/static/node-monitor.js');
 
     // worker error handling
@@ -311,6 +314,28 @@
 
     }, false);
 
+
+    ////
+    // sockets
+
+    socket.on('add-decision', function(data) {
+        nodeMonitor.postMessage({'add-decision': data});
+    });
+
+    socket.on('show-block', function(data) {
+        $('#explore-modal pre').text(data);
+    });
+
+    socket.on('settings', function(settings) {
+
+        $('#node-host').val(settings['host']);
+        $('#node-port').val(settings['port']);
+        $('#core-path').val(settings['core_path']);
+
+        $('#node-settings-modal form button[type=submit]').text('Saved').attr('disabled', true);   
+    });
+
+
     ////
     // actions
 
@@ -336,6 +361,24 @@
         $('#password-modal').modal('hide');
     }); 
 
+    $('#node-settings-modal form').on('submit', function(event) {
+
+        event.preventDefault();
+
+        var settings = {
+            'host': $('#node-host').val(),
+            'port': $('#node-port').val(),
+            'core_path': $('#core-path').val()
+        }
+
+        $('#node-settings-modal form button[type=submit]').text('Saving...').attr('disabled', true);        
+        socket.emit('settings', settings);
+    });
+
+    $('#node-settings-modal form').on('change', function(event) {
+
+        $('#node-settings-modal form button[type=submit]').text('SAVE SETTINGS').removeAttr('disabled');        
+    });
 
     $('.reporting form').on('submit', function(event) {
 
@@ -371,10 +414,6 @@
 
         socket.emit('add-decision', args);
         $('#add-decision-modal').modal('hide');
-    });
-
-    socket.on('add-decision', function(data) {
-        nodeMonitor.postMessage({'add-decision': data});
     });
 
     $('#send-cash-modal form').on('submit', function(event) {
@@ -417,10 +456,6 @@
 
         event.preventDefault();
         socket.emit('explore-block', $('#explore-modal input[name=block-number]').val());
-    });
-
-    socket.on('show-block', function(data) {
-        $('#explore-modal pre').text(data);
     });
 
     $('#stop-node').on('click', function() {
