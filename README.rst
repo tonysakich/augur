@@ -10,6 +10,10 @@ Augur graphical client
 .. image:: https://badge.fury.io/py/Augur-UI.svg
     :target: http://badge.fury.io/py/Augur-UI
 
+The Augur prototype is currently in alpha testing.  Our installation procedures (and other documentation) will get better/easier as time goes on and we smooth out the rough edges!  In the meantime, please `email <mailto:team@augur.net>`__ us or join us in `#augur <irc://irc.freenode.net/augur>`__ on FreeNode IRC if you have trouble installing or running the prototype.
+
+Caution: the Augur prototype is built for rapid testing.  We can't guarantee its security or scalability!  Use it at your own risk :)
+
 Requirements
 ~~~~~~~~~~~~
 
@@ -23,8 +27,7 @@ Installation
 MacOS X
 ^^^^^^^
 
-First, install `Xcode command line
-tools <https://developer.apple.com/downloads/>`__. Then enter the
+First, install `Xcode command line tools <https://developer.apple.com/downloads/>`__. Then enter the
 following commands in the terminal:
 
 ::
@@ -34,6 +37,8 @@ following commands in the terminal:
     $ sudo pip install -r requirements.txt
 
 Start the Augur client using ``augur_ctl``:
+
+::
 
     $ ./augur_ctl start
 
@@ -55,6 +60,8 @@ First, you will need to install a few background packages using ``apt-get``:
     $ pip install -r requirements.txt
 
 Start the Augur client using ``augur_ctl``:
+
+::
 
     $ ./augur_ctl start
 
