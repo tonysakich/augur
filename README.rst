@@ -1,5 +1,5 @@
-Augur graphical client
-----------------------
+Augur-UI: Augur graphical client
+--------------------------------
 
 .. image:: https://travis-ci.org/AugurProject/Augur-UI.svg
     :target: https://travis-ci.org/AugurProject/Augur-UI
