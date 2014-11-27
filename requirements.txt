@@ -10,7 +10,6 @@ gevent-websocket==0.9.3
 gitdb==0.6.0
 greenlet==0.4.5
 itsdangerous==0.24
-leveldb==0.193
 m3-cdecimal==2.3
 numpy==1.9.1
 six==1.8.0

@@ -6,21 +6,41 @@ try:
     sys.modules["decimal"] = cdecimal
 except:
     pass
+
 from gevent import monkey
 monkey.patch_all()
-import json, datetime, sys, os, socket, time, re, pprint, ast, hashlib, random
-from string import ascii_uppercase, ascii_lowercase, digits
+
+import os
+import sys
+import json
+import datetime
+import socket
+import time
+import re
+import ast
+import random
 from decimal import Decimal
+from subprocess import call, Popen
+from string import ascii_uppercase, ascii_lowercase, digits
 from flask import Flask, session, request, escape, url_for, redirect, render_template, g, abort, send_from_directory
 from flask.ext.socketio import SocketIO, emit, send
 from multiprocessing import Process
 from werkzeug import secure_filename
-# for signing 
-import hashlib, base64
-# for automatic AugurCore installation
-import git
-from subprocess import call, Popen
+
+# Signing 
+import hashlib
+import base64
 import ecdsa
+
+# GitPython AugurCore installation
+import git
+
+__title__      = "Augur"
+__version__    = "0.1.1"
+__author__     = "Scott Leonard, Jack Peterson, Chris Calderon"
+__license__    = "MIT"
+__maintainer__ = "Scott Leonard"
+__email__      = "scott@augur.net"
 
 app = Flask(__name__, template_folder='.')
 socketio = SocketIO(app)
@@ -35,7 +55,6 @@ class Api(object):
     CORE_PATH = os.path.join(HERE, os.pardir, "core")
 
     def __init__(self):
-
         self.tx_count = 0
         self.host = 'localhost'
         self.port = 8899
@@ -47,8 +66,9 @@ class Api(object):
 
             # check for zack's core 
             self.core_path = os.path.join(self.HERE, os.pardir, os.pardir, "Truthcoin-POW")
-            if not os.path.isdir(self.core_path):
 
+            # if not found, install a new core
+            if not os.path.isdir(self.core_path):
                 self.core_path = self.CORE_PATH
                 app.logger.info("AugurCore not found; cloning " +\
                                  self.core_repo_url + " to " + self.core_path)
@@ -250,21 +270,16 @@ def ping():
         else:
             emit('miner', 'error')
 
-
 @socketio.on('get-account', namespace='/socket.io/')
 def get_account():
-
     data = api.send({ 'command': ['info', 'my_address'] })
-
     if data:
-
         api.address = api.send({ 'command': ['my_address'] })
         api.privkey = str(api.send({ 'command': ['info', 'privkey'] }))
         api.pubkey = ecdsa.privkey_to_pubkey(api.privkey)
 
         # update tx count for push_tx commands (%$^#%$^)
         api.tx_count = data['count']
-
         account = {
             'address': api.address,
             'privkey': api.privkey,
@@ -328,7 +343,7 @@ def report(report):
 def explore_block(block_number):
     data = api.send({ 'command': ['info', block_number] })
     if data:
-        block = pprint.pformat(data)
+        block = json.dumps(data, indent=3, sort_keys=True)
         emit('show-block', block)
 
 @socketio.on('start', namespace='/socket.io/')
@@ -458,7 +473,5 @@ def trade(args):
 ###
 # main
 if __name__ == '__main__':
-
     socketio.run(app, host='127.0.0.1', port=9000)
-
-    print "stopping..."
+    print("Stopping...")
