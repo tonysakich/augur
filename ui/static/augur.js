@@ -412,10 +412,6 @@
         $('#add-decision-modal').modal('hide');
     });
 
-    socket.on('add-decision', function(data) {
-        nodeMonitor.postMessage({'add-decision': data});
-    });
-
     $('#send-cash-modal form').on('submit', function(event) {
 
         event.preventDefault();
@@ -456,10 +452,6 @@
 
         event.preventDefault();
         socket.emit('explore-block', $('#explore-modal input[name=block-number]').val());
-    });
-
-    socket.on('show-block', function(data) {
-        $('#explore-modal pre').text(data);
     });
 
     $('#stop-node').on('click', function() {
