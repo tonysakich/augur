@@ -43,6 +43,9 @@ class TestAugur(unittest.TestCase):
         self.ns = "/socket.io/"
         self.client = socketio.test_client(app, namespace=self.ns)
         self.client.get_received(self.ns)
+        # self.socket_emit_receive({
+        #     "emit-name": "start",
+        # })
 
     def socket_emit_receive(self, intake):
         label, data = None, None
@@ -227,6 +230,9 @@ class TestAugur(unittest.TestCase):
         # })
 
     def tearDown(self):
+        # self.socket_emit_receive({
+        #     "emit-name": "stop",
+        # })
         del self.api
         del self.client
 

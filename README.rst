@@ -1,7 +1,7 @@
 Augur-UI: Augur graphical client
 --------------------------------
 
-.. image:: https://travis-ci.org/AugurProject/Augur-UI.svg
+.. image:: https://travis-ci.org/AugurProject/Augur-UI.svg?branch=augur_package
     :target: https://travis-ci.org/AugurProject/Augur-UI
 
 .. image:: https://coveralls.io/repos/tensorjack/Augur-UI/badge.png
