@@ -32,10 +32,10 @@ import hashlib
 import base64
 import ecdsa
 
-# GitPython AugurCore installation
+# GitPython augur-core installation
 import git
 
-__title__      = "Augur"
+__title__      = "augur"
 __version__    = "0.1.1"
 __author__     = "Scott Leonard, Jack Peterson, Chris Calderon"
 __license__    = "MIT"
@@ -59,29 +59,23 @@ class Api(object):
         self.host = 'localhost'
         self.port = 8899
         self.core_path = self.CORE_PATH
-        self.core_repo_url = "https://github.com/AugurProject/AugurCore.git"
+        self.core_repo_url = "https://github.com/zack-bitcoin/augur-core.git"
         
-        # look for core
+        # look for core; if not found, install a new core
         if not os.path.isdir(self.core_path):
-
-            # check for zack's core 
-            self.core_path = os.path.join(self.HERE, os.pardir, os.pardir, "Truthcoin-POW")
-
-            # if not found, install a new core
-            if not os.path.isdir(self.core_path):
-                self.core_path = self.CORE_PATH
-                app.logger.info("AugurCore not found; cloning " +\
-                                 self.core_repo_url + " to " + self.core_path)
-                os.mkdir(self.core_path)
-                repo = git.Repo.init(self.core_path)
-                origin = repo.create_remote("origin", self.core_repo_url)
-                origin.fetch()
-                origin.pull(origin.refs[0].remote_head)
+            self.core_path = self.CORE_PATH
+            app.logger.info("augur-core not found; cloning " +\
+                             self.core_repo_url + " to " + self.core_path)
+            os.mkdir(self.core_path)
+            repo = git.Repo.init(self.core_path)
+            origin = repo.create_remote("origin", self.core_repo_url)
+            origin.fetch()
+            origin.pull(origin.refs[0].remote_head)
 
         if os.path.isdir(self.core_path):
-            app.logger.info("Found AugurCore at " + self.core_path)
+            app.logger.info("Found augur-core at " + self.core_path)
         else:
-            app.logger.error("Failed to install or find AugurCore. You can manually set the path in node options.")
+            app.logger.error("Failed to install or find augur-core. You can manually set the path in node options.")
 
 
     @property
