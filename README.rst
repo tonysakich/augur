@@ -1,18 +1,18 @@
-Augur-UI: Augur graphical client
---------------------------------
+augur: decentralized prediction markets
+---------------------------------------
 
-.. image:: https://travis-ci.org/AugurProject/Augur-UI.svg?branch=augur_package
-    :target: https://travis-ci.org/AugurProject/Augur-UI
+.. image:: https://travis-ci.org/AugurProject/augur.svg
+    :target: https://travis-ci.org/AugurProject/augur
 
-.. image:: https://coveralls.io/repos/tensorjack/Augur-UI/badge.png
-  :target: https://coveralls.io/r/tensorjack/Augur-UI
+.. image:: https://coveralls.io/repos/tensorjack/augur/badge.png
+  :target: https://coveralls.io/r/tensorjack/augur
 
-.. image:: https://badge.fury.io/py/Augur-UI.svg
-    :target: http://badge.fury.io/py/Augur-UI
+.. image:: https://badge.fury.io/py/augur.svg
+    :target: http://badge.fury.io/py/augur
 
-The Augur prototype is currently in alpha testing.  Our installation procedures (and other documentation) will get better/easier as time goes on and we smooth out the rough edges!  In the meantime, please `email <mailto:team@augur.net>`__ us or join us in `#augur <irc://irc.freenode.net/augur>`__ on FreeNode IRC if you have trouble installing or running the prototype.
+This is the Augur prototype.  It is currently in alpha testing.  Our installation procedures and other documentation will get better/easier as time goes on and we smooth out the rough edges!  In the meantime, please `email <mailto:team@augur.net>`__ us or join us in `#augur <irc://irc.freenode.net/augur>`__ on FreeNode IRC if you have trouble installing or running the prototype.
 
-Caution: the Augur prototype is built for rapid testing.  We can't guarantee its security or scalability!  Use it at your own risk :)
+Caution: the prototype is built for rapid testing.  We don't guarantee its security or scalability!  Use at your own risk :)
 
 Requirements
 ~~~~~~~~~~~~
