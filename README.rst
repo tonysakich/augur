@@ -32,8 +32,8 @@ following commands in the terminal:
 
 ::
 
-    $ git clone https://github.com/AugurProject/Augur-UI.git
-    $ cd Augur-UI
+    $ git clone https://github.com/AugurProject/augur.git
+    $ cd augur
     $ sudo pip install -r requirements.txt
 
 Start the Augur client using ``augur_ctl``:
@@ -46,7 +46,7 @@ Start the Augur client using ``augur_ctl``:
 Linux (Ubuntu)
 ^^^^^^^^^^^^^^
 
-So far, we have only tested Augur-UI on Ubuntu 12.04/14.04.  If you've tested this on another Linux distro, `let us know <mailto:team@augur.net>`__!
+So far, we have only tested augur on Ubuntu 12.04/14.04.  If you've tested it on another Linux distro, `let us know <mailto:team@augur.net>`__!
 
 First, you will need to install a few background packages using ``apt-get``:
 
@@ -55,8 +55,8 @@ First, you will need to install a few background packages using ``apt-get``:
     $ apt-get install git libpython-dev python-numpy
     $ pip2 install m3-cdecimal
 
-    $ git clone https://github.com/AugurProject/Augur-UI.git
-    $ cd Augur-UI
+    $ git clone https://github.com/AugurProject/augur.git
+    $ cd augur
     $ pip install -r requirements.txt
 
 Start the Augur client using ``augur_ctl``:
@@ -83,9 +83,9 @@ Installing the prototype on Windows requires a few extra steps:
 
 6. Finally, go back to the ``Start Menu`` type ``cmd`` and press ``Enter``, then type ``pip install flask flask-socketio``.
 
-You can run Augur-UI by going into the ``ui`` directory and double-clicking on ``app.py``.
+Run augur by going into the ``ui`` directory and double-clicking on ``app.py``.
 
 Usage
 ~~~~~
 
-Once Augur is installed, navigate to ``http://localhost:9000`` in your web browser, and you should see the Augur interface.  To fire up your local node, click the red "Node stopped" button, then "Start node".  After your node starts, you will see the main Augur interface.
+Once augur is installed, navigate to ``http://localhost:9000`` in your web browser, and you should see the augur interface.  To fire up your local node, click the red "Node stopped" button, then "Start node".  After your node starts, you will see the main interface.
