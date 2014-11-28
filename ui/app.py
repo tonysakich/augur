@@ -59,7 +59,7 @@ class Api(object):
         self.host = 'localhost'
         self.port = 8899
         self.core_path = self.CORE_PATH
-        self.core_repo_url = "https://github.com/AugurProject/augur-core.git"
+        self.core_repo_url = "https://github.com/zack-bitcoin/augur-core.git"
         
         # look for core; if not found, install a new core
         if not os.path.isdir(self.core_path):
