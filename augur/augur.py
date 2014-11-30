@@ -52,7 +52,7 @@ else:
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
-app = Flask(__name__, template_folder='.')
+app = Flask(__name__, template_folder=HERE)
 socketio = SocketIO(app)
 app.config['DEBUG'] = True
 
@@ -69,20 +69,26 @@ class Api(object):
         self.core_path = os.path.join(HERE, "core")
         self.core_repository = "https://github.com/zack-bitcoin/augur-core.git"
 
+        app.logger.info("HERE: " + HERE)
+        app.logger.info("sys.executable: " + str(sys.executable))
+
         # look for augur core; if not found, download and install one
-        if not os.path.isdir(self.core_path):
-            app.logger.info("augur-core not found.\nCloning " +\
-                             self.core_repository + " to:\n" + self.core_path)
-            os.mkdir(self.core_path)
-            repo = git.Repo.init(self.core_path)
-            origin = repo.create_remote("origin", self.core_repository)
-            origin.fetch()
-            origin.pull(origin.refs[0].remote_head)
+        if hasattr(sys, 'frozen'):
+            exe_path = os.path.split(sys.executable)[:-1]
+            self.core_path = os.path.join(*(exe_path + ('core',)))
+        else:
+            if not os.path.isdir(self.core_path):
+                app.logger.info("augur-core not found.\nCloning " +\
+                                 self.core_repository + " to:\n" + self.core_path)
+                os.mkdir(self.core_path)
+                repo = git.Repo.init(self.core_path)
+                origin = repo.create_remote("origin", self.core_repository)
+                origin.fetch()
+                origin.pull(origin.refs[0].remote_head)
         if os.path.isdir(self.core_path):
             app.logger.info("Found augur-core at " + self.core_path)
         else:
             app.logger.error("Failed to install or find augur-core. You can manually set the path in node options.")
-
 
     @property
     def python_cmd(self):
