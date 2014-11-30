@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+"""
+augur: decentralized prediction markets
+
+"""
 from __future__ import division
 import sys
 try:
@@ -6,10 +10,8 @@ try:
     sys.modules["decimal"] = cdecimal
 except:
     pass
-
 from gevent import monkey
 monkey.patch_all()
-
 import os
 import sys
 import json
@@ -23,17 +25,14 @@ from decimal import Decimal
 from subprocess import call, Popen
 from string import ascii_uppercase, ascii_lowercase, digits
 from flask import Flask, session, request, escape, url_for, redirect, render_template, g, abort, send_from_directory
-from flask.ext.socketio import SocketIO, emit, send
+from flask_socketio import SocketIO, emit, send
 from multiprocessing import Process
 from werkzeug import secure_filename
-
-# Signing 
 import hashlib
 import base64
 import ecdsa
-
-# GitPython augur-core installation
 import git
+from six.moves import xrange as range
 
 __title__      = "augur"
 __version__    = "0.1.1"
@@ -42,7 +41,17 @@ __license__    = "MIT"
 __maintainer__ = "Scott Leonard"
 __email__      = "scott@augur.net"
 
-app = Flask(__name__, template_folder='.')
+_IS_PYTHON_3 = sys.version_info[0] == 3
+identity = lambda x : x
+if _IS_PYTHON_3:
+    u = identity
+else:
+    import codecs
+    def u(string):
+        return codecs.unicode_escape_decode(string)[0]
+
+HERE = os.path.dirname(os.path.realpath(__file__))
+app = Flask(__name__, template_folder=HERE)
 socketio = SocketIO(app)
 app.config['DEBUG'] = True
 
@@ -51,27 +60,23 @@ class Api(object):
 
     MAX_MESSAGE_SIZE = 60000
     BUY_SHARES_TARGET = '0' * 3 + '1' + '9' * 60
-    HERE = os.path.dirname(os.path.realpath(__file__))
-    CORE_PATH = os.path.join(HERE, os.pardir, "core")
 
     def __init__(self):
         self.tx_count = 0
         self.host = 'localhost'
         self.port = 8899
-        self.core_path = self.CORE_PATH
-        self.core_repo_url = "https://github.com/zack-bitcoin/augur-core.git"
-        
-        # look for core; if not found, install a new core
+        self.core_path = os.path.join(HERE, "core")
+        self.core_repository = "https://github.com/zack-bitcoin/augur-core.git"
+
+        # look for augur core; if not found, download and install one
         if not os.path.isdir(self.core_path):
-            self.core_path = self.CORE_PATH
             app.logger.info("augur-core not found; cloning " +\
-                             self.core_repo_url + " to " + self.core_path)
+                             self.core_repository + " to " + self.core_path)
             os.mkdir(self.core_path)
             repo = git.Repo.init(self.core_path)
-            origin = repo.create_remote("origin", self.core_repo_url)
+            origin = repo.create_remote("origin", self.core_repository)
             origin.fetch()
             origin.pull(origin.refs[0].remote_head)
-
         if os.path.isdir(self.core_path):
             app.logger.info("Found augur-core at " + self.core_path)
         else:
@@ -216,7 +221,7 @@ api = Api()
 
 @app.route('/', methods=['GET', 'POST'])
 def dash():
-    return render_template('app.html')
+    return render_template('augur.html')
 
 @app.route('/static/<path:filename>')
 @app.route('/fonts/<path:filename>')

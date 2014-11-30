@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """
-Augur unit tests.
+augur unit tests.
 
 """
 from __future__ import division
+import sys
 try:
-    import sys
     import cdecimal
     sys.modules["decimal"] = cdecimal
 except:
@@ -20,8 +20,7 @@ else:
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, os.pardir))
-sys.path.insert(0, os.path.join(HERE, os.pardir, "ui"))
-sys.path.insert(0, os.path.join(HERE, os.pardir, "core"))
+sys.path.insert(0, os.path.join(HERE, os.pardir, "augur"))
 
 from ui.app import app, socketio, Api
 
@@ -34,7 +33,7 @@ class TestAugur(unittest.TestCase):
         self.settings = {
             "host": "localhost",
             "port": 8899,
-            "core_path": os.path.join(HERE, os.pardir, "core"),
+            "core_path": os.path.join(HERE, "core"),
         }
         self.vote_id = 1
         self.decision_id = 1
