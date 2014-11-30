@@ -26,11 +26,11 @@ from subprocess import call, Popen
 from string import ascii_uppercase, ascii_lowercase, digits
 from flask import Flask, session, request, escape, url_for, redirect, render_template, g, abort, send_from_directory
 from flask_socketio import SocketIO, emit, send
-from multiprocessing import Process
 from werkzeug import secure_filename
 import hashlib
 import base64
 import ecdsa
+from core import threads
 from six.moves import xrange as range
 
 __title__      = "augur"
@@ -50,10 +50,11 @@ else:
         return codecs.unicode_escape_decode(string)[0]
 
 HERE = os.path.dirname(os.path.realpath(__file__))
-
-exe_path = os.path.split(sys.executable)[:-1]
-if hasattr(sys, 'frozen'):
-    app = Flask(__name__, template_folder=os.path.join(*exe_path))
+EXE_PATH = os.path.dirname(sys.executable)
+FROZEN = hasattr(sys, 'frozen')
+if FROZEN:
+    app = Flask(__name__, template_folder=EXE_PATH,
+                          static_folder=os.path.join(EXE_PATH, "static"))
 else:
     app = Flask(__name__, template_folder='.')
 socketio = SocketIO(app)
@@ -66,13 +67,14 @@ class Api(object):
     BUY_SHARES_TARGET = '0' * 3 + '1' + '9' * 60
 
     def __init__(self):
+        self.core = None
         self.tx_count = 0
         self.host = 'localhost'
         self.port = 8899
 
         # look for augur core; if not found, download and install one
-        if hasattr(sys, 'frozen'):
-            self.core_path = os.path.join(*(exe_path + ('core',)))
+        if FROZEN:
+            self.core_path = os.path.join(EXE_PATH, "core", "dist", "threads")
         else:
             self.core_path = os.path.join(HERE, "core")
             if not os.path.isdir(self.core_path):
@@ -85,10 +87,13 @@ class Api(object):
                 origin = repo.create_remote("origin", core_repository)
                 origin.fetch()
                 origin.pull(origin.refs[0].remote_head)
+
         if os.path.isdir(self.core_path):
+            sys.path.insert(0, self.core_path)
             app.logger.info("Found augur-core at " + self.core_path)
         else:
-            app.logger.error("Failed to install or find augur-core. You can manually set the path in node options.")
+            app.logger.error("Failed to install or find augur-core.\n"+\
+                             "You can manually set the path in node options.")
 
     @property
     def python_cmd(self):
@@ -99,12 +104,18 @@ class Api(object):
         return os.path.join(*result)
 
     def start_node(self, password):
-        cmd = os.path.join(self.core_path, 'threads.py')
-        Popen([self.python_cmd, cmd, password])
+        if FROZEN:
+            if sys.platform == "win32":
+                Popen([os.path.join(self.core_path, "threads.exe"), password])
+            else:
+                if os.fork() == 0:
+                    threads.main(password)
+        else:
+            cmd = os.path.join(self.core_path, 'threads.py')
+            Popen([self.python_cmd, cmd, password])
 
     def stop_node(self):
-        cmd = os.path.join(self.core_path, 'truth_cli.py')
-        status = call([self.python_cmd, cmd, 'stop'])
+        self.send({'command': ['stop']})
 
     def connect(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -113,8 +124,8 @@ class Api(object):
             s.connect((self.host, self.port))
         except:
             return {
-                'error': 'cannot connect host:' + str(self.host)\
-                         + ' port:' + str(self.port)
+                'error': 'cannot connect host:' + str(self.host)+\
+                         ' port:' + str(self.port)
             }
         return s
 

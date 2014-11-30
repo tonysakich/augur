@@ -1,5 +1,6 @@
 # -*- mode: python -*-
-# pyinstaller --clean --log-level=DEBUG --no-confirm augur.spec
+# pyinstaller augur\core\threads.py
+# pyinstaller augur.spec
 
 a = Analysis(['augur\\augur.py'],
              pathex=['C:\\Users\\jack\\Documents\\Scripts\\AugurProject\\augur'],
