@@ -31,7 +31,6 @@ from werkzeug import secure_filename
 import hashlib
 import base64
 import ecdsa
-import git
 from six.moves import xrange as range
 
 __title__      = "augur"
@@ -52,7 +51,11 @@ else:
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
-app = Flask(__name__, template_folder=HERE)
+exe_path = os.path.split(sys.executable)[:-1]
+if hasattr(sys, 'frozen'):
+    app = Flask(__name__, template_folder=os.path.join(*exe_path))
+else:
+    app = Flask(__name__, template_folder='.')
 socketio = SocketIO(app)
 app.config['DEBUG'] = True
 
@@ -66,23 +69,20 @@ class Api(object):
         self.tx_count = 0
         self.host = 'localhost'
         self.port = 8899
-        self.core_path = os.path.join(HERE, "core")
-        self.core_repository = "https://github.com/zack-bitcoin/augur-core.git"
-
-        app.logger.info("HERE: " + HERE)
-        app.logger.info("sys.executable: " + str(sys.executable))
 
         # look for augur core; if not found, download and install one
         if hasattr(sys, 'frozen'):
-            exe_path = os.path.split(sys.executable)[:-1]
             self.core_path = os.path.join(*(exe_path + ('core',)))
         else:
+            self.core_path = os.path.join(HERE, "core")
             if not os.path.isdir(self.core_path):
+                import git
+                core_repository = "https://github.com/zack-bitcoin/augur-core.git"
                 app.logger.info("augur-core not found.\nCloning " +\
-                                 self.core_repository + " to:\n" + self.core_path)
+                                 core_repository + " to:\n" + self.core_path)
                 os.mkdir(self.core_path)
                 repo = git.Repo.init(self.core_path)
-                origin = repo.create_remote("origin", self.core_repository)
+                origin = repo.create_remote("origin", core_repository)
                 origin.fetch()
                 origin.pull(origin.refs[0].remote_head)
         if os.path.isdir(self.core_path):

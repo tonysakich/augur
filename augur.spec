@@ -1,4 +1,5 @@
 # -*- mode: python -*-
+# pyinstaller --clean --log-level=DEBUG --no-confirm augur.spec
 
 a = Analysis(['augur\\augur.py'],
              pathex=['C:\\Users\\jack\\Documents\\Scripts\\AugurProject\\augur'],
@@ -27,6 +28,7 @@ core_tree = Tree('augur\\core', prefix='core')
 
 dist = COLLECT(exe,
                a.binaries,
+               a.datas,
                static_tree,
                core_tree,
                strip=None,
