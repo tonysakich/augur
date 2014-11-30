@@ -20,7 +20,8 @@ exe = EXE(pyz,
           upx=True,
           console=True)
 
-static_tree = Tree('augur\\static', prefix='static')
+static_tree = Tree('augur\\static')
+static_tree += [('augur\\augur.html', 'augur.html', 'DATA')]
 static_tree += [('augur_ctl', 'augur_ctl', 'DATA')]
 
 dist = COLLECT(exe,
