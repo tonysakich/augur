@@ -30,7 +30,6 @@ from werkzeug import secure_filename
 import hashlib
 import base64
 import ecdsa
-from core import threads
 from six.moves import xrange as range
 
 __title__      = "augur"
@@ -51,7 +50,7 @@ else:
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 EXE_PATH = os.path.dirname(sys.executable)
-FROZEN = hasattr(sys, 'frozen')
+FROZEN = getattr(sys, 'frozen', False)
 if FROZEN:
     app = Flask(__name__, template_folder=EXE_PATH,
                           static_folder=os.path.join(EXE_PATH, "static"))
@@ -74,19 +73,22 @@ class Api(object):
 
         # look for augur core; if not found, download and install one
         if FROZEN:
-            self.core_path = os.path.join(EXE_PATH, "core", "dist", "threads")
+            self.core_path = os.path.join(EXE_PATH, "core", "dist", "core")
         else:
             self.core_path = os.path.join(HERE, "core")
             if not os.path.isdir(self.core_path):
-                import git
-                core_repository = "https://github.com/zack-bitcoin/augur-core.git"
-                app.logger.info("augur-core not found.\nCloning " +\
-                                 core_repository + " to:\n" + self.core_path)
-                os.mkdir(self.core_path)
-                repo = git.Repo.init(self.core_path)
-                origin = repo.create_remote("origin", core_repository)
-                origin.fetch()
-                origin.pull(origin.refs[0].remote_head)
+                self.core_path = os.path.join(HERE, os.pardir, "core")
+                if not os.path.isdir(self.core_path):
+                    self.core_path = os.path.join(HERE, "core")
+                    import git
+                    core_repository = "https://github.com/zack-bitcoin/augur-core.git"
+                    app.logger.info("augur-core not found.\nCloning " +\
+                                     core_repository + " to:\n" + self.core_path)
+                    os.mkdir(self.core_path)
+                    repo = git.Repo.init(self.core_path)
+                    origin = repo.create_remote("origin", core_repository)
+                    origin.fetch()
+                    origin.pull(origin.refs[0].remote_head)
 
         if os.path.isdir(self.core_path):
             sys.path.insert(0, self.core_path)
@@ -106,8 +108,9 @@ class Api(object):
     def start_node(self, password):
         if FROZEN:
             if sys.platform == "win32":
-                Popen([os.path.join(self.core_path, "threads.exe"), password])
+                Popen([os.path.join(self.core_path, "core.exe"), password])
             else:
+                from core import threads
                 if os.fork() == 0:
                     threads.main(password)
         else:
