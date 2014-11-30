@@ -73,7 +73,9 @@ Windows installer: `Augur_0.1.1.exe <http://www.augur.net/static/install/Augur_0
 
 After running the installer, click on your Start Menu, navigate to the Augur application folder, then click on Augur.  A command window should appear, containing some debugging information, and saying that Augur is running on <code>http://localhost:9000</code>.  Open your web browser and enter ``http://localhost:9000`` in the address bar, and you should be up and running.
 
-Note: this installer has only been tested so far on Windows 7 (64-bit).  If the installer does not work for you, you can still install Augur on Windows "by hand", but it requires a few extra steps:
+Note: this installer has only been tested so far on Windows 7 (64-bit).
+
+If you want to run the Augur source code on Windows, a few extra steps are required:
 
 1. First, make sure you have `Python installed <https://www.python.org/downloads/release/python-278/>`__.
 
