@@ -92,11 +92,8 @@
         } else if (m['peers']) {
 
             $('.peers').empty();
-
-            $.each(m['peers'], function(address, info) {
-                var p = $('<p>').text(address);
-                $('.peers').append(p);
-            });
+            var total_peers = Object.keys(m['peers']).length;
+            $('.peers').html('<span class="pull-left"><b>'+total_peers+'</b> PEERS</span><a class="pull-right"></a>');
 
         } else if (m['cycle']) {
 
