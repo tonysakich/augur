@@ -15,7 +15,7 @@ install:
 before_script:
   - ./augur_ctl start &
   - python augur/core/threads.py testuser &
-  - sleep 30
+  - sleep 60
 script:
   - py.test test/test_augur.py --doctest-modules -v --cov augur --cov-report term-missing
 after_success:
