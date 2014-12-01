@@ -14,3 +14,4 @@ m3-cdecimal==2.3
 numpy==1.9.1
 six==1.8.0
 smmap==0.8.3
+leveldb==0.193
