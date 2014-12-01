@@ -9,8 +9,6 @@ Augur: decentralized prediction markets
 
 This is the Augur prototype.  It is currently in alpha testing.  Our installation procedures and other documentation will get better/easier as time goes on and we smooth out the rough edges!  In the meantime, please `email <mailto:team@augur.net>`__ us or join us in `#augur <irc://irc.freenode.net/augur>`__ on FreeNode IRC if you have trouble installing or running the prototype.
 
-Caution: the prototype is built for rapid testing.  We don't guarantee its security or scalability!  Use at your own risk :)
-
 Requirements
 ~~~~~~~~~~~~
 
@@ -40,8 +38,8 @@ Start the Augur client using ``augur_ctl``:
     $ ./augur_ctl start
 
 
-Linux (Ubuntu)
-^^^^^^^^^^^^^^
+Linux
+^^^^^
 
 So far, we have only tested augur on Ubuntu 12.04/14.04.  If you've tested it on another Linux distro, `let us know <mailto:team@augur.net>`__!
 
@@ -49,7 +47,7 @@ First, you will need to install a few background packages using ``apt-get``:
 
 ::
 
-    $ apt-get install git libpython-dev python-numpy
+    $ apt-get install git libpython-dev python-numpy python-leveldb
     $ pip2 install m3-cdecimal
 
     $ git clone https://github.com/AugurProject/augur.git
