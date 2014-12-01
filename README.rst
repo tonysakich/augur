@@ -12,7 +12,7 @@ This is the Augur prototype.  It is currently in alpha testing.  Our installatio
 Requirements
 ~~~~~~~~~~~~
 
--  Python 2.6 or 2.7
+-  Python 2.7
 -  git
 -  pip
 
