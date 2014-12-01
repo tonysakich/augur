@@ -22,7 +22,7 @@ HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(HERE, os.pardir))
 sys.path.insert(0, os.path.join(HERE, os.pardir, "augur"))
 
-from ui.app import app, socketio, Api
+from augur import app, socketio, Api
 
 class TestAugur(unittest.TestCase):
 
