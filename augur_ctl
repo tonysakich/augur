@@ -3,7 +3,7 @@
 case "$1" in
     start)
         echo -n "Starting Augur..."
-        augur/augur.py 
+        cd augur; ./augur.py 
         echo "OK"
         ;;
     stop)
