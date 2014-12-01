@@ -1,4 +1,4 @@
-augur: decentralized prediction markets
+Augur: decentralized prediction markets
 ---------------------------------------
 
 .. image:: https://travis-ci.org/AugurProject/augur.svg
@@ -6,9 +6,6 @@ augur: decentralized prediction markets
 
 .. image:: https://coveralls.io/repos/tensorjack/augur/badge.png
   :target: https://coveralls.io/r/tensorjack/augur
-
-.. image:: https://badge.fury.io/py/augur.svg
-    :target: http://badge.fury.io/py/augur
 
 This is the Augur prototype.  It is currently in alpha testing.  Our installation procedures and other documentation will get better/easier as time goes on and we smooth out the rough edges!  In the meantime, please `email <mailto:team@augur.net>`__ us or join us in `#augur <irc://irc.freenode.net/augur>`__ on FreeNode IRC if you have trouble installing or running the prototype.
 
