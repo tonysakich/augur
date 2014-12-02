@@ -73,7 +73,7 @@ class Api(object):
 
         # look for augur core; if not found, download and install one
         if FROZEN:
-            self.core_path = os.path.join(EXE_PATH, "core", "dist", "core")
+            self.core_path = os.path.join(EXE_PATH, "core")
         else:
             self.core_path = os.path.join(HERE, "core")
             if not os.path.isdir(self.core_path):

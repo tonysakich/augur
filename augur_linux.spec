@@ -23,7 +23,7 @@ exe = EXE(pyz,
           console=True)
 
 static_tree = Tree('augur/static', prefix='static')
-core_tree = Tree('augur/core', prefix='core')
+core_tree = Tree('../frozen-core/dist/core', prefix='core')
 
 dist = COLLECT(exe,
                a.binaries,
