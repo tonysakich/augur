@@ -1,7 +1,7 @@
 # -*- mode: python -*-
 
 a = Analysis(['augur/augur.py'],
-             pathex=['/home/jack/src/augur'],
+             pathex=[os.path.join(os.environ.get('AUGURROOT', None), 'augur')],
              hiddenimports=[],
              hookspath=None,
              runtime_hooks=None)
