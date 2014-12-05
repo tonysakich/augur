@@ -116,6 +116,9 @@ class Api(object):
         else:
             cmd = os.path.join(self.core_path, 'threads.py')
             Popen([self.python_cmd, cmd, password])
+            #from core import threads
+            #if os.fork() == 0:
+            #    threads.main(password)
 
     def stop_node(self):
         self.send({'command': ['stop']})

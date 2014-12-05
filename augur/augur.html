@@ -164,6 +164,21 @@
         </div>
     </div>
 
+    <div id="downloading-modal" class="modal fade">
+        <div class="modal-dialog model-sm">
+            <div class="modal-content">
+                <div class="modal-body clearfix">
+                    <h4>Downloading blockchain from peers</h4>
+                    <script type="text/template" id="downloading-template">
+                        <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="<%= percent %>" aria-valuemin="0" aria-valuemax="100" style="width: <%= percent %>%;"><%= text %>
+                        </div>
+                    </script>
+                    <div class="progress"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="create-branch-modal" class="modal fade">
         <div class="modal-dialog model-sm">
             <div class="modal-content">

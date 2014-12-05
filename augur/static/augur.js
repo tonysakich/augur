@@ -241,6 +241,22 @@
 
             $('.block-view').text(m['view-block']);
 
+        } else if (m['downloading']) {
+
+            if (m['downloading'].done) {
+
+                $('#downloading-modal').modal('hide');
+
+            } else {
+
+                var text = m['downloading']['current'] + '/' + m['downloading']['total'];
+                var p = m['downloading']['current'] / m['downloading']['total'] * 100
+                var template = _.template($("#downloading-template").html());
+
+                $('#downloading-modal .progress').empty().append(template({'text': text, 'percent': p}));
+                $('#downloading-modal').modal('show');
+            }
+
         } else if (m['markets']) {
 
             if (!$.isEmptyObject(m['markets'])) {
