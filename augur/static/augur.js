@@ -254,6 +254,7 @@
                 var template = _.template($("#downloading-template").html());
 
                 $('#downloading-modal .progress').empty().append(template({'text': text, 'percent': p}));
+                $('#downloading-modal').modal({'keyboard': false, 'backdrop': 'static'});
                 $('#downloading-modal').modal('show');
             }
 
