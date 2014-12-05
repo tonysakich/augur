@@ -70,12 +70,6 @@ socket.on('blockcount', function (count) {
 
         augur.force = false;
 
-        var prev_blockcount = augur.blockcount;
-        augur.blockcount = count;
-        self.postMessage({'blockcount': count});
-
-        socket.emit('update-account');
-
         // be nice and wait for node to download blocks before trying to fetch a bunch
         if (augur.network_blockcount - count > 100) {
 
@@ -87,6 +81,12 @@ socket.on('blockcount', function (count) {
             self.postMessage({'downloading': {'done': true}});
         }
 
+        var prev_blockcount = augur.blockcount;
+        augur.blockcount = count;
+        self.postMessage({'blockcount': count});
+
+        socket.emit('update-account');
+        
         var start_block = prev_blockcount + 1;
 
         // examine new blocks
