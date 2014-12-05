@@ -332,11 +332,11 @@ def update_account():
     }
     emit('account', account)
 
-@socketio.on('get-block', namespace='/socket.io/')
-def get_block(block_number):
-    block = api.send({ 'command': ['info', block_number] })
-    if block:
-        emit('block', block)
+@socketio.on('get-blocks', namespace='/socket.io/')
+def get_blocks(start, end):
+    blocks = api.send({ 'command': ['blocks', start, end] })
+    if blocks:
+        emit('blocks', blocks)
 
 @socketio.on('peers', namespace='/socket.io/')
 def peers():
