@@ -79,9 +79,7 @@ socket.on('blockcount', function (count) {
         // be nice and wait for node to download blocks before trying to fetch a bunch
         if (augur.network_blockcount - count > 100) {
 
-            console.log('downloading blocks...');
             self.postMessage({'downloading': {'total': augur.network_blockcount, 'current': count}});
-
             return;
 
         } else {
