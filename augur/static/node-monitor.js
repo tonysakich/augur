@@ -95,12 +95,12 @@ socket.on('blockcount', function (count) {
 
             console.log('[nodeMonitor] fetching blocks '+ start_block +' - '+augur.blockcount);
 
-            var batches = parseInt((augur.blockcount - start_block) / 50);
+            var batches = parseInt((augur.blockcount - start_block) / 20);
 
             for (i = 0; i <= batches; i++) {
 
-                var start = start_block + (i * 50);
-                var end = start + 50 > augur.blockcount ? augur.blockcount : start + 50;
+                var start = start_block + (i * 20);
+                var end = start + 20 > augur.blockcount ? augur.blockcount : start + 20;
 
                 //console.log('getting '+ start + ' - '+ end);
                 socket.emit('get-blocks', start, end);
@@ -221,7 +221,7 @@ socket.on('blocks', function (blocks) {
             _.each(block['txs'], function(tx) {
 
                 // build ledger of all account transactions
-                if (tx['pubkey'] == account['pubkey']) acount['txs'].push(tx);
+                if (tx['pubkey'] == account['pubkey']) account['txs'].push(tx);
 
                 if (tx['type'] == 'propose_decision') {
 
@@ -269,6 +269,13 @@ socket.on('blocks', function (blocks) {
                         messages.push(sender + ' sent ' + tx['amount'] + ' ' + tx['vote_id'] + ' reputation to ' + tx['to']);
                     } else {
                         messages.push(sender + ' sent ' + tx['amount'] + ' cash to ' + tx['to']);
+                    }
+                
+                } else if (tx['type'] == 'jury_vote') {
+
+                    if (tx['old_vote'] == 'unsure') {
+
+                        augur.decisions[tx['decision_id']]['reported'] = augur.decisions[tx['decision_id']]['reported'] ? augur.decisions[tx['decision_id']]['reported']++ : 1;
                     }
 
                 }

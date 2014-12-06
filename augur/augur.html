@@ -94,6 +94,7 @@
                                     <input type="radio" name="<%= d.decision_id %>" value="0.5" <% if (d.state == '0.5') { %>checked<% }; %>> Ambiguous or Indeterminent
                                 </label>
                                 <p class="my-choice"><%= d.state_desc %></p>
+                                <span class="pull-right" style="margin-left: 6px;"><%= d.reported %> report</span>
                                 <span class="pull-right glyphicon glyphicon-ok"></span>
                             </li>
                         </script>
