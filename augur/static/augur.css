@@ -35,6 +35,9 @@ h1.navbar-brand {
     position: relative;
     top: -3px;
 }
+nav {
+    border-radius: 0px;
+}
 nav h1 span {
     font-weight: 400;
 }
@@ -59,6 +62,11 @@ nav .cash {
     margin-left: 8px;
     position: relative;
     top: 3px;
+}
+nav .parsing.progress {
+    margin: 0px 0px 0px 0px;
+    height: 2px;
+    border-radius: 0px;
 }
 .sidebar .panel {
     font-size: 12px;

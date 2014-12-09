@@ -312,7 +312,7 @@ socket.on('peers', function (peers) {
     _.each(peers, function(data) {
 
         // update network blockcount to largest peers
-        augur.network_blockcount = data.blockcount > augur.network_blockcount ? data.blockcount : augur.network_blockcount;
+        augur.network_blockcount = data.length > augur.network_blockcount ? data.length : augur.network_blockcount;
     });
 
     self.postMessage({'peers': peers});

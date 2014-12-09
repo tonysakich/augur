@@ -262,17 +262,13 @@
 
             if (m['parsing'].done) {
 
-                $('#parsing-modal').modal('hide');
-
             } else {
 
                 var text = m['parsing']['current'] + '/' + m['parsing']['total'];
                 var p = m['parsing']['current'] / m['parsing']['total'] * 100
                 var template = _.template($("#parsing-template").html());
 
-                $('#parsing-modal .progress').empty().append(template({'text': text, 'percent': p}));
-                $('#parsing-modal').modal({'keyboard': false, 'backdrop': 'static'});
-                $('#parsing-modal').modal('show');
+                $('.parsing.progress').empty().append(template({'text': text, 'percent': p}));
             }
 
         } else if (m['markets']) {

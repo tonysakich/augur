@@ -268,17 +268,20 @@ def settings(settings):
 
 @socketio.on('ping', namespace='/socket.io/')
 def ping():
+
     data = api.send({ 'command': ['peers'] })
+
     if data:
-        peers = {}
-        for peer in data:
-            address = "%s:%s" % (peer[0][0], peer[0][1])
-            if peers.get(address):
-                if int(peer[3]) > peers[address]['blockcount']:
-                    peers[address]['blockcount'] = int(peer[3])
-            else:
-                peers[address] = {'blockcount': int(peer[3]), 'id': peer[2]}
+        if type(data) == dict:
+            peers = data
+        else:
+            peers = {}
+            for peer in data:
+                address = peer[0][0]
+                peers[address] = {'length': int(peer[3]), 'port': peer[0][1], 'id': peer[2]}
+
         emit('peers', peers)
+
     data = api.send({ 'command': ['blockcount'] })
     if data:
         emit('blockcount', int(data))
