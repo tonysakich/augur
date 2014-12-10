@@ -221,7 +221,7 @@ socket.on('blocks', function (blocks) {
             _.each(block['txs'], function(tx) {
 
                 // build ledger of all account transactions
-                if (tx['pubkey'] == account['pubkey']) account['txs'].push(tx);
+                //if (tx['pubkey'] == account['pubkey']) account['txs'].push(tx);
 
                 if (tx['type'] == 'propose_decision') {
 

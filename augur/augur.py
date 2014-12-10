@@ -29,7 +29,6 @@ from flask_socketio import SocketIO, emit, send
 from werkzeug import secure_filename
 import hashlib
 import base64
-import ecdsa
 from six.moves import xrange as range
 
 __title__      = "augur"
@@ -70,6 +69,7 @@ class Api(object):
         self.tx_count = 0
         self.host = 'localhost'
         self.port = 8899
+        self.pubkey = None
 
         # look for augur core; if not found, download and install one
         if FROZEN:
@@ -140,21 +140,8 @@ class Api(object):
             return {'error': 'could not get a response'}
         s = self.connect()
         if retry == 0:
-            
             # add version
             msg['version'] = '0.0009'
-
-            # sniff out pushtx commands and sign and repackage
-            if msg['command'][0] == 'pushtx':
-
-                # add required args
-                msg['command'][1]['pubkeys'] = [ unicode(self.pubkey) ]
-                msg['command'][1]['count'] = self.tx_count
-
-                # hash message, sign and add sig
-                h = self.det_hash(msg['command'][1])
-                msg['command'][1]['signatures'] = [ ecdsa.ecdsa_sign(h, self.privkey)]
-                msg['command'][1] = json.dumps(msg['command'][1]).encode('base64')
 
         json_msg = json.dumps(msg)
         padded_json = str(len(json_msg)).rjust(5, '0') + json_msg
@@ -215,28 +202,6 @@ class Api(object):
     def get_market(self, id=None):
         if id:
             return self.send({'command':['info', id]})
-
-    def trade_pow(self, tx):
-        tx = json.loads(json.dumps(tx))
-        h = self.det_hash(tx)
-        tx[u'nonce'] = random.randint(0, 10000000000000000000000000000000000000000)
-        a = 'F' * 64
-        while self.det_hash(a) > self.BUY_SHARES_TARGET:
-            tx[u'nonce'] += 1
-            a = {u'nonce': tx['nonce'], u'halfHash': h}
-        return tx
-
-    def get_cost_per_share(self, tx):
-        market = self.get_market(id=tx['PM_id'])
-        B = market['B'] * Decimal(1.0)
-        E = Decimal('2.718281828459045')
-        def C(s, B):
-            return B * (sum(map(lambda x: E ** (x / B), s))).ln()
-        C_old = C(market['shares_purchased'], B)
-        def add(a, b):
-            return a + b
-        C_new = C(map(add, market['shares_purchased'], tx['buy']), B)
-        return int(C_new - C_old)
 
 api = Api()
 
@@ -302,7 +267,6 @@ def get_account():
     if data:
         api.address = api.send({ 'command': ['my_address'] })
         api.privkey = str(api.send({ 'command': ['info', 'privkey'] }))
-        api.pubkey = ecdsa.privkey_to_pubkey(api.privkey)
 
         # update tx count for push_tx commands (%$^#%$^)
         api.tx_count = data['count']
