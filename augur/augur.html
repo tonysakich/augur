@@ -30,9 +30,15 @@
             </div>
             <ul class="nav navbar-nav navbar-right">
                 <li>
-                    <button class="btn" style="display: none;" data-toggle="modal" data-target="#node-settings-modal">
+                    <button class="btn miner-control" style="display: none;">
                         <span class="status"></span>
-                        <span class="glyphicon glyphicon-cog"></span>
+                        <i class="glyphicon glyphicon-off"></i>
+                    </button>
+                </li>
+                <li>
+                    <button class="btn node-settings" style="display: none;" data-toggle="modal" data-target="#node-settings-modal">
+                        <span class="status"></span>
+                        <i class="glyphicon glyphicon-cog"></i>
                     </button>
                 </li>
             </ul>
@@ -69,8 +75,6 @@
                     <div class="panel-body">
                         <p class="blocks clearfix"></p>
                         <p class="peers clearfix"></p>
-                        <p class="miner-control miner-off clearfix"><span class="pull-left">MINER OFF</span><a href="#" class="pull-right">start</a></p>
-                        <p class="miner-control miner-on clearfix" style="display:none;"><span class="pull-left">MINER ON</span><a href="#" class="pull-right">stop</a></p>
                     </div>
                 </div>
 

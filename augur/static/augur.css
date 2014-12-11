@@ -45,23 +45,26 @@ nav .cash {
     margin-left: 20px;
     font-weight: bold;
 }
+.nav li {
+    margin-left: 10px;
+}
 .nav button {
     margin-top: 7px;
 }
-.nav .btn-danger .status:before {
-    content: 'Node stopped';
-}
-.nav .btn-warning .status:before {
-    content: 'Node starting';
-}
-.nav .btn-success .status:before {
-    content: 'Node running';
-}
-.nav span.glyphicon-cog {
+.nav button i {
     font-size: 16px;
     margin-left: 8px;
     position: relative;
     top: 3px;
+}
+.nav button.node-settings.btn-danger .status:before {
+    content: 'Node stopped';
+}
+.nav button.node-settings.btn-warning .status:before {
+    content: 'Node starting';
+}
+.nav button.node-settings.btn-success .status:before {
+    content: 'Node running';
 }
 nav .parsing.progress {
     margin: 0px 0px 0px 0px;

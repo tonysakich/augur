@@ -367,14 +367,12 @@ self.addEventListener('message', function(message) {
 
         augur.market_queue[m['add-decision'].decisionId] = m['add-decision'];
 
-
     } else if (m && m['report-decision']) {
 
         augur.decisions[m['report-decision']['decision_id']]['state'] = m['report-decision']['stage'];
 
         var data = _.extend(augur.decisions[m['report-decision']['decision_id']], m['report-decision']);
         socket.emit('report', data);
-
 
     } else if (m && m['trade']) {
 
