@@ -81,7 +81,7 @@ class Api(object):
                 if not os.path.isdir(self.core_path):
                     self.core_path = os.path.join(HERE, "core")
                     import git
-                    core_repository = "https://github.com/zack-bitcoin/augur-core.git"
+                    core_repository = "https://github.com/tensorjack/augur-core.git"
                     app.logger.info("augur-core not found.\nCloning " +\
                                      core_repository + " to:\n" + self.core_path)
                     os.mkdir(self.core_path)
