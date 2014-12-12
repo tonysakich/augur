@@ -62,29 +62,29 @@
 
             $('body').removeClass('stopped').addClass('running');
             $('#node-settings-modal').modal('hide');
-            $('.nav button').addClass('btn-success');
-            $('.nav button').removeClass('btn-warning');
-            $('.nav button').removeClass('btn-danger');
-            $('.nav button').show();
+            $('button.node-settings').addClass('btn-success');
+            $('button.node-settings').removeClass('btn-warning');
+            $('button.node-settings').removeClass('btn-danger');
+            $('button.node-settings').show();
             $('#node-settings-modal .btn-success').hide();
             $('#node-settings-modal .btn-danger').show();
             $('#start-node').button('reset');
 
         } else if (m['node-starting']) {
 
-            $('.nav button').removeClass('btn-success');
-            $('.nav button').addClass('btn-warning');
-            $('.nav button').removeClass('stopped');
-            $('.nav button').show();
+            $('button.node-settings').removeClass('btn-success');
+            $('button.node-settings').addClass('btn-warning');
+            $('button.node-settings').removeClass('stopped');
+            $('button.node-settings').show();
 
         } else if (m['node-down']) {
 
             $('body').removeClass('running').addClass('stopped');
             $('#node-settings-modal').modal('hide');
-            $('.nav button').removeClass('btn-success');
-            $('.nav button').removeClass('btn-warning');
-            $('.nav button').addClass('btn-danger');
-            $('.nav button').show();
+            $('button.node-settings').removeClass('btn-success');
+            $('button.node-settings').removeClass('btn-warning');
+            $('button.node-settings').addClass('btn-danger');
+            $('button.node-settings').show();
             $('#node-settings-modal .btn-success').show();
             $('#node-settings-modal .btn-danger').hide();
             $('#stop-node').button('reset');
@@ -116,7 +116,6 @@
             $('.cycle .progress').empty();
             _.each(phases, function(p) {
                 $('.cycle .progress').append(template({'type': p.name, 'percent': p.percent}))
-
             });
 
             $('.cycle').show();
@@ -241,6 +240,38 @@
 
             $('.block-view').text(m['view-block']);
 
+        } else if (m['downloading']) {
+
+            if (m['downloading'].done) {
+
+                $('#downloading-modal').modal('hide');
+
+            } else {
+
+                var text = m['downloading']['current'] + '/' + m['downloading']['total'];
+                var p = m['downloading']['current'] / m['downloading']['total'] * 100
+                var template = _.template($("#downloading-template").html());
+
+                $('#downloading-modal .progress').empty().append(template({'text': text, 'percent': p}));
+                $('#downloading-modal').modal({'keyboard': false, 'backdrop': 'static'});
+                $('#downloading-modal').modal('show');
+            }
+
+        } else if (m['parsing']) {
+
+            if (m['parsing'].done) {
+
+                $('button.miner-control').show();
+
+            } else {
+
+                var text = m['parsing']['current'] + '/' + m['parsing']['total'];
+                var p = m['parsing']['current'] / m['parsing']['total'] * 100
+                var template = _.template($("#parsing-template").html());
+
+                $('.parsing.progress').empty().append(template({'text': text, 'percent': p}));
+            }
+
         } else if (m['markets']) {
 
             if (!$.isEmptyObject(m['markets'])) {
@@ -295,13 +326,13 @@
 
             if (m['miner'] == 'on') {
 
-                $('.miner-off').hide();
-                $('.miner-on').show()
+                $('button.miner-control .status').text('Miner On');
+                $('button.miner-control').removeClass('btn-danger').addClass('btn-success');
 
             } else {
 
-                $('.miner-on').hide()
-                $('.miner-off').show();
+                $('button.miner-control .status').text('Miner Off');
+                $('button.miner-control').removeClass('btn-success').addClass('btn-danger');
             }
 
         } else if (m['cash']) {
@@ -334,15 +365,15 @@
     ////
     // actions
 
-    $('.miner-control a').on('click', function() {
+    $('button.miner-control').on('click', function() {
 
-        if ($('.miner-off').is(':visible')) {
-
-            socket.emit('miner', 'start');
-            
-        } else if ($('.miner-on').is(':visible')) {
+        if ($(this).hasClass('btn-success')) {
 
             socket.emit('miner', 'stop');
+            
+        } else {
+
+            socket.emit('miner', 'start');
         }
     });
 

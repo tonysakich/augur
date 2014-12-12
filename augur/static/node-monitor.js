@@ -17,7 +17,8 @@ var augur = {
     starting: false,
     current: false,
     market_queue: {},
-    force: false
+    force: false,
+    blocks_loaded: 0
 }
 
 var cycle = {
@@ -70,19 +71,39 @@ socket.on('blockcount', function (count) {
 
         augur.force = false;
 
+        // be nice and wait for node to download blocks before trying to fetch a bunch
+        if (augur.network_blockcount - count > 100) {
+
+            self.postMessage({'downloading': {'total': augur.network_blockcount, 'current': count}});
+            return;
+
+        } else {
+
+            self.postMessage({'downloading': {'done': true}});
+        }
+
         var prev_blockcount = augur.blockcount;
         augur.blockcount = count;
         self.postMessage({'blockcount': count});
 
-        var start_block = prev_blockcount + 1;
-
         socket.emit('update-account');
+
+        var start_block = prev_blockcount + 1;
 
         // examine new blocks
         if (prev_blockcount != count) {
+
             console.log('[nodeMonitor] fetching blocks '+ start_block +' - '+augur.blockcount);
-            for (i = start_block; i <= augur.blockcount; i++) {
-                socket.emit('get-block', i);
+
+            var batches = parseInt((augur.blockcount - start_block) / 20);
+
+            for (i = 0; i <= batches; i++) {
+
+                var start = start_block + (i * 20);
+                var end = start + 20 > augur.blockcount ? augur.blockcount : start + 20;
+
+                //console.log('getting '+ start + ' - '+ end);
+                socket.emit('get-blocks', start, end);
             }
         }
 
@@ -189,73 +210,91 @@ socket.on('blockcount', function (count) {
     }
 });
 
-socket.on('block', function (block) {
+socket.on('blocks', function (blocks) {
 
-    if (block && block['txs']) {
+    if (blocks && blocks.length) {
 
         var messages = []
 
-        _.each(block['txs'], function(tx) {
+        _.each(blocks, function(block) {
 
-            // build ledger of all account transactions
-            if (tx['pubkey'] == account['pubkey']) acount['txs'].push(tx);
+            _.each(block['txs'], function(tx) {
 
-            if (tx['type'] == 'propose_decision') {
+                // build ledger of all account transactions
+                //if (tx['pubkey'] == account['pubkey']) account['txs'].push(tx);
 
-                tx['status'] = tx['maturation'] > augur.network_blockcount ? 'open' : 'closed';
-                tx['maturation_date'] = blockTime(tx['maturation']);
-                if (account.decisions && account.decisions[tx['decision_id']]) {
-                    tx['state'] = account.decisions[tx['decision_id']]
+                if (tx['type'] == 'propose_decision') {
+
+                    tx['status'] = tx['maturation'] > augur.network_blockcount ? 'open' : 'closed';
+                    tx['maturation_date'] = blockTime(tx['maturation']);
+                    if (account.decisions && account.decisions[tx['decision_id']]) {
+                        tx['state'] = account.decisions[tx['decision_id']]
+                    }
+                    augur.decisions[tx['decision_id']] = tx;
+
+                    // check to see if we're waiting for this decision to show up
+                    if (augur.market_queue[tx['decision_id']]) {
+
+                        socket.emit('add-market', augur.market_queue[tx['decision_id']]);
+                        delete augur.market_queue[tx['decision_id']]
+                    }
+
+                    messages.push('New decision: ' + tx['txt'] + ' (' + tx['decision_id'] + ')');
+
+                } else if (tx['type'] == 'prediction_market') {
+
+                    var decision_id = tx['decisions'][0];
+
+                    // augment market data with decision data
+                    augur.markets[decision_id] = _.extend(tx, augur.decisions[decision_id]);
+
+                    self.postMessage({'markets': augur.markets});
+
+                } else if (tx['type'] == 'create_jury') {
+
+                    augur.branches[tx.vote_id] = tx;
+
+                    // check to see if we have any rep on this branch
+                    if (_.has(account.branches, tx.vote_id)) {
+                        augur.branches[tx.vote_id]['my_rep'] = account.branches[tx.vote_id];
+                    }
+
+                    self.postMessage({'branches': augur.branches});
+                    messages.push('New branch: ' + tx['vote_id']);
+
+                } else if (tx['type'] == 'spend') {
+
+                    sender = 'unknown';
+                    if (tx.vote_id) {
+                        messages.push(sender + ' sent ' + tx['amount'] + ' ' + tx['vote_id'] + ' reputation to ' + tx['to']);
+                    } else {
+                        messages.push(sender + ' sent ' + tx['amount'] + ' cash to ' + tx['to']);
+                    }
+                
+                } else if (tx['type'] == 'jury_vote') {
+
+                    if (tx['old_vote'] == 'unsure') {
+
+                        augur.decisions[tx['decision_id']]['reported'] = augur.decisions[tx['decision_id']]['reported'] ? augur.decisions[tx['decision_id']]['reported']++ : 1;
+                    }
+
                 }
-                augur.decisions[tx['decision_id']] = tx;
+            });
 
-                // check to see if we're waiting for this decision to show up
-                if (augur.market_queue[tx['decision_id']]) {
+            augur.blocks_loaded++;
 
-                    socket.emit('add-market', augur.market_queue[tx['decision_id']]);
-                    delete augur.market_queue[tx['decision_id']]
-                }
+            // check to see if we have caught up and loaded all txs
+            if (augur.blocks_loaded + 1 == augur.network_blockcount && !augur.current) {
 
-                messages.push('New decision: ' + tx['txt'] + ' (' + tx['decision_id'] + ')');
+                self.postMessage({'parsing': {'done': true}});
+                augur.current = true;
+                augur.force = true;
 
-            } else if (tx['type'] == 'prediction_market') {
+            } else {
 
-                var decision_id = tx['decisions'][0];
-
-                // augment market data with decision data
-                augur.markets[decision_id] = _.extend(tx, augur.decisions[decision_id]);
-
-                self.postMessage({'markets': augur.markets});
-
-            } else if (tx['type'] == 'create_jury') {
-
-                augur.branches[tx.vote_id] = tx;
-
-                // check to see if we have any rep on this branch
-                if (_.has(account.branches, tx.vote_id)) {
-                    augur.branches[tx.vote_id]['my_rep'] = account.branches[tx.vote_id];
-                }
-
-                self.postMessage({'branches': augur.branches});
-                messages.push('New branch: ' + tx['vote_id']);
-
-            } else if (tx['type'] == 'spend') {
-
-                sender = 'unknown';
-                if (tx.vote_id) {
-                    messages.push(sender + ' sent ' + tx['amount'] + ' ' + tx['vote_id'] + ' reputation to ' + tx['to']);
-                } else {
-                    messages.push(sender + ' sent ' + tx['amount'] + ' cash to ' + tx['to']);
-                }
-
+                self.postMessage({'parsing': {'total': augur.network_blockcount, 'current': augur.blocks_loaded}});
             }
         });
-
-        // check to see if we have caught up and loaded all txs
-        if (block['length'] == augur.network_blockcount && !augur.current) {
-            augur.current = true;
-            augur.force = true;
-        }
 
         if (messages.length) self.postMessage({'alert': {'type': 'info', 'messages': messages}});
     }      
@@ -273,7 +312,7 @@ socket.on('peers', function (peers) {
     _.each(peers, function(data) {
 
         // update network blockcount to largest peers
-        augur.network_blockcount = data.blockcount > augur.network_blockcount ? data.blockcount : augur.network_blockcount;
+        augur.network_blockcount = data.length > augur.network_blockcount ? data.length : augur.network_blockcount;
     });
 
     self.postMessage({'peers': peers});
@@ -328,14 +367,12 @@ self.addEventListener('message', function(message) {
 
         augur.market_queue[m['add-decision'].decisionId] = m['add-decision'];
 
-
     } else if (m && m['report-decision']) {
 
         augur.decisions[m['report-decision']['decision_id']]['state'] = m['report-decision']['stage'];
 
         var data = _.extend(augur.decisions[m['report-decision']['decision_id']], m['report-decision']);
         socket.emit('report', data);
-
 
     } else if (m && m['trade']) {
 

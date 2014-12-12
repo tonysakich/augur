@@ -35,6 +35,9 @@ h1.navbar-brand {
     position: relative;
     top: -3px;
 }
+nav {
+    border-radius: 0px;
+}
 nav h1 span {
     font-weight: 400;
 }
@@ -42,23 +45,32 @@ nav .cash {
     margin-left: 20px;
     font-weight: bold;
 }
+.nav li {
+    margin-left: 10px;
+}
 .nav button {
-    margin-top: 7px;
+    margin-top: 9px;
 }
-.nav .btn-danger .status:before {
-    content: 'Node stopped';
-}
-.nav .btn-warning .status:before {
-    content: 'Node starting';
-}
-.nav .btn-success .status:before {
-    content: 'Node running';
-}
-.nav span.glyphicon-cog {
-    font-size: 16px;
+.nav button i {
+    font-size: 14px;
     margin-left: 8px;
     position: relative;
     top: 3px;
+}
+.nav button.node-settings.btn-danger .status:before {
+    content: 'Node stopped';
+}
+.nav button.node-settings.btn-warning .status:before {
+    content: 'Node starting';
+}
+.nav button.node-settings.btn-success .status:before {
+    content: 'Node running';
+}
+nav .parsing.progress {
+    margin: 0px 0px 0px 0px;
+    height: 2px;
+    border-radius: 0px;
+    border: 0px;
 }
 .sidebar .panel {
     font-size: 12px;
@@ -167,6 +179,9 @@ nav .cash {
 .cycle {
     margin-bottom: 30px;
 }
+.cycle .progress {
+    height: 6px;
+}
 .cycle .progress-bar.reveal {
     background-color: rgb(239, 147, 5);
 }
@@ -243,10 +258,6 @@ nav .cash {
     font-size: 13px;
     margin-bottom: 5px;
 }
-.progress {
-    height: 6px;
-}
-
 #logo {
     font-size: 363px;
     width: 300px;
