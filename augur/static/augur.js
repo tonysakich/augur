@@ -259,11 +259,12 @@
 
         } else if (m['parsing']) {
 
-            if (m['parsing'].done) {
+            // if (m['parsing'].done) {
 
-                $('button.miner-control').show();
+            $('button.miner-control').show();
 
-            } else {
+            // } else {
+            if (!m['parsing'].done) {
 
                 var text = m['parsing']['current'] + '/' + m['parsing']['total'];
                 var p = m['parsing']['current'] / m['parsing']['total'] * 100

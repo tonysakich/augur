@@ -179,7 +179,7 @@ class Api(object):
         data = data[5:]
         while len(data) < length:
             d = s.recv(self.MAX_MESSAGE_SIZE - len(data))
-            if not j:
+            if not d:
                 return 'broken connection'
             data += d
 
