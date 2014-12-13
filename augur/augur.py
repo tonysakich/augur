@@ -32,7 +32,7 @@ import base64
 from six.moves import xrange as range
 
 __title__      = "augur"
-__version__    = "0.2"
+__version__    = "0.2.1"
 __author__     = "Scott Leonard, Jack Peterson, Chris Calderon"
 __license__    = "MIT"
 __maintainer__ = "Scott Leonard"
