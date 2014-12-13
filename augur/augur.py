@@ -445,7 +445,7 @@ def trade(args):
     trade = []
     for i, state in enumerate(market_info["states"]):
         if args["marketState"] == state:
-+           trade.append(("" if args["tradeType"] == "buy" else "-") + args["tradeAmount"])
+            trade.append(("" if args["tradeType"] == "buy" else "-") + args["tradeAmount"])
         else:
             trade.append("0")
     if trade:
