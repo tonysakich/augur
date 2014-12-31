@@ -6,7 +6,7 @@ except ImportError:
 
 setup(
     name="augur",
-    version="0.2.1",
+    version="0.3",
     description="decentralized prediction markets",
     author="Scott Leonard, Jack Peterson, Chris Calderon",
     author_email="<team@augur.net>",
@@ -14,7 +14,7 @@ setup(
     maintainer_email="<scott@augur.net>",
     license="MIT",
     url="https://github.com/AugurProject/augur",
-    download_url = "https://github.com/AugurProject/augur/tarball/0.2.1",
+    download_url = "https://github.com/AugurProject/augur/tarball/0.3",
     packages=["augur"],
     install_requires=["Flask", "Flask-SocketIO", "GitPython", "Jinja2", "Werkzeug", "MarkupSafe", "gevent", "gitdb", "greenlet", "itsdangerous", "smmap", "numpy", "six"],
     keywords = ["bitcoin", "truthcoin", "prediction markets", "forecasting", "decentralized"]
