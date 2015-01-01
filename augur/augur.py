@@ -32,7 +32,7 @@ import base64
 from six.moves import xrange as range
 
 __title__      = "augur"
-__version__    = "0.2.1"
+__version__    = "0.3"
 __author__     = "Scott Leonard, Jack Peterson, Chris Calderon"
 __license__    = "MIT"
 __maintainer__ = "Scott Leonard"
@@ -81,8 +81,8 @@ class Api(object):
                 if not os.path.isdir(self.core_path):
                     self.core_path = os.path.join(HERE, "core")
                     import git
-                    core_repository = "https://github.com/zack-bitcoin/augur-core.git"
-                    app.logger.info("augur-core not found.\nCloning " +\
+                    core_repository = "https://github.com/AugurProject/augur-python.git"
+                    app.logger.info("Core not found.\nCloning " +\
                                      core_repository + " to:\n" + self.core_path)
                     os.mkdir(self.core_path)
                     repo = git.Repo.init(self.core_path)
@@ -92,7 +92,7 @@ class Api(object):
 
         if os.path.isdir(self.core_path):
             sys.path.insert(0, self.core_path)
-            app.logger.info("Found augur-core at " + self.core_path)
+            app.logger.info("Found augur core at " + self.core_path)
         else:
             app.logger.error("Failed to install or find augur-core.\n"+\
                              "You can manually set the path in node options.")
