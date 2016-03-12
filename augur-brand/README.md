@@ -1,7 +1,7 @@
 Augur Brand
 ============
 
-Augur is the a Decentralized Prediction Market running on Ethereum.
+Augur is a Decentralized Prediction Market running on Ethereum.
 
 
 ##Logo
@@ -33,3 +33,16 @@ The Augur color scheme uses Hex: #602A52
 | Cyan | Magenta | Yellow | Key (Black) |
 |:----:|:-------:|:------:|:-----------:|
 | 60  |   91    |   40    |      31     |
+
+##Fonts
+
+###Core Mellow
+
+Primary Font
+-Used for Augur logo and headings
+
+###Source Sans Pro
+Secondary Font
+- Used for body text and user interface
+
+# branding
